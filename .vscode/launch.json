@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Play Type Strike",
+      "request": "launch",
+      "mainClass": "typestrike.Main",
+      "classPaths": ["$Auto", "${workspaceFolder}/resources"],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
