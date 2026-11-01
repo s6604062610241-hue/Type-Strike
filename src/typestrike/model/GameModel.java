@@ -57,7 +57,7 @@ public final class GameModel {
         spawnCountdown -= seconds;
         if (spawnCountdown <= 0) {
             if (enemies.size() < MAX_ENEMIES) spawnEnemy();
-            spawnCountdown = Math.max(0.7, 2.2 - elapsed / 120.0);
+            spawnCountdown = Math.max(1.2, 2.8 - Math.max(0, elapsed - 30) / 180.0);
         }
     }
 
@@ -126,6 +126,7 @@ public final class GameModel {
     }
 
     public boolean hasSlowCharge() { return slow.isCharged(); }
+    public int getSlowCharges() { return slow.getCharges(); }
     public boolean isSlowActive() { return slow.isActive(); }
     public double getSlowRemaining() { return slow.getRemaining(); }
 
@@ -138,5 +139,5 @@ public final class GameModel {
     public int getScore() { return score; }
     public int getDefeated() { return defeated; }
     public int getAccuracy() { return submissions == 0 ? 100 : (int) Math.round(matches * 100.0 / submissions); }
-    public int getLevel() { return 1 + (int) (elapsed / 30); }
+    public int getLevel() { return 1 + (int) (elapsed / 60); }
 }

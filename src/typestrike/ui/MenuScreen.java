@@ -1,6 +1,5 @@
 package typestrike.ui;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -10,9 +9,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JComboBox;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
 
 public final class MenuScreen extends GameScreen {
     private final JLabel records = Theme.label("", 16, Theme.GOLD);
@@ -29,25 +25,6 @@ public final class MenuScreen extends GameScreen {
         add(Box.createVerticalStrut(8));
         add(Theme.label("Defend the last spell.", 19, Theme.PURPLE));
         add(Box.createVerticalStrut(12));
-        JComboBox<Theme.Palette> themes = new JComboBox<>(Theme.Palette.values());
-        themes.setSelectedItem(Theme.current());
-        themes.setFont(Theme.MONO);
-        themes.setForeground(Theme.TEXT);
-        themes.setBackground(Theme.PANEL);
-        themes.setAlignmentX(0.5f);
-        themes.setMaximumSize(new Dimension(345, 32));
-        themes.getAccessibleContext().setAccessibleName("Preview theme");
-        themes.setRenderer(new DefaultListCellRenderer() {
-            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                    boolean selected, boolean focus) {
-                Component renderer = super.getListCellRendererComponent(list, value, index, selected, focus);
-                renderer.setBackground(selected ? Theme.SELECTION : Theme.PANEL);
-                renderer.setForeground(Theme.TEXT);
-                return renderer;
-            }
-        });
-        themes.addActionListener(e -> window.selectTheme(themes.getSelectedIndex()));
-        add(themes);
         JPanel sprites = new JPanel() {
             @Override protected void paintComponent(Graphics graphics) {
                 super.paintComponent(graphics);
@@ -82,11 +59,11 @@ public final class MenuScreen extends GameScreen {
         add(Box.createVerticalStrut(12));
         add(Theme.label("NORMAL +10   |   ARMORED: 2 words / +25   |   FROST: 1 word / +20", 12, Theme.MUTED));
         add(Box.createVerticalStrut(8));
-        add(Theme.label("F1 / F2 / F3: compare themes    ESC: pause    Focus loss: auto-pause", 12, Theme.MUTED));
+        add(Theme.label("ESC: pause / resume    |    Pause menu: main menu or quit", 12, Theme.MUTED));
         add(Box.createVerticalStrut(12));
         add(warning);
         add(Box.createVerticalGlue());
-        add(Theme.label("CRYSTAL FROST SLIME: grants SLOW  |  SPACE: 50% enemy speed for 4s  |  Store 1 charge", 11, Theme.ICE));
+        add(Theme.label("CRYSTAL FROST SLIME: grants SLOW  |  SPACE: 50% enemy speed for 5s  |  Store 3 charges", 11, Theme.ICE));
     }
 
     @Override public void onShow() {

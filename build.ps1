@@ -18,6 +18,11 @@ function Find-Jdk {
 $jdk = Find-Jdk
 $classes = Join-Path $PSScriptRoot 'build\classes'
 $dist = Join-Path $PSScriptRoot 'dist'
+# Remove compiler output only, so removed Java classes cannot leak into the next JAR.
+$workspacePath = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') + '\'
+$classesPath = [System.IO.Path]::GetFullPath($classes)
+if (-not $classesPath.StartsWith($workspacePath, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid compiler output directory.' }
+if (Test-Path -LiteralPath $classesPath) { Remove-Item -LiteralPath $classesPath -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $classes, $dist | Out-Null
 $sources = @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src') -Recurse -Filter '*.java' | ForEach-Object { $_.FullName })
 & (Join-Path $jdk 'bin\javac.exe') --release 21 -encoding UTF-8 -Xlint:all,-serial -d $classes @sources

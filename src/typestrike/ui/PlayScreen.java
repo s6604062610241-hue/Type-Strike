@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -27,13 +30,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import typestrike.model.Enemy;
 import typestrike.model.GameModel;
+import typestrike.model.SlowPowerUp;
 
 public final class PlayScreen extends GameScreen {
     private final JTextField input = new JTextField();
     private final JLabel hud = Theme.label("", 16, Theme.TEXT);
     private final JLabel feedback = Theme.label("Type a word and press ENTER", 13, Theme.MUTED);
     private final JButton pause = Theme.button("PAUSE [ESC]", Theme.PURPLE);
-    private final JButton slowButton = Theme.button("SLOW [SPACE] 0/1", Theme.ICE);
+    private final JButton slowButton = Theme.button("SLOW [SPACE] 0/3", Theme.ICE);
+    private final JPanel pauseMenu = new JPanel();
     private final Arena arena = new Arena();
     private final Timer timer = new Timer(16, e -> tick());
     private final List<Effect> effects = new ArrayList<>();
@@ -62,6 +67,9 @@ public final class PlayScreen extends GameScreen {
         header.add(Theme.label("TYPE STRIKE", 21, Theme.GREEN), BorderLayout.WEST);
         header.add(hud, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
+        configurePauseMenu();
+        arena.setLayout(new GridBagLayout());
+        arena.add(pauseMenu);
         add(arena, BorderLayout.CENTER);
 
         JPanel footer = new JPanel(new BorderLayout(14, 9));
@@ -74,7 +82,7 @@ public final class PlayScreen extends GameScreen {
         slowButton.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.ICE),
                 BorderFactory.createEmptyBorder(5, 12, 5, 12)));
         slowButton.setPreferredSize(new Dimension(230, 30));
-        slowButton.setToolTipText("Defeat a crystal-marked Frost Slime, then press Space. Stores one charge.");
+        slowButton.setToolTipText("Defeat a crystal-marked Frost Slime, then press Space. Stores up to three charges.");
         slowButton.addActionListener(e -> activateSlow());
         status.add(slowButton, BorderLayout.EAST);
         footer.add(status, BorderLayout.NORTH);
@@ -111,7 +119,7 @@ public final class PlayScreen extends GameScreen {
         buttons.add(cast);
         buttons.add(pause);
         footer.add(buttons, BorderLayout.EAST);
-        footer.add(Theme.label("CRYSTAL: gain SLOW | SPACE: use charge | F1 / F2 / F3: themes | ESC: pause", 11, Theme.MUTED), BorderLayout.SOUTH);
+        footer.add(Theme.label("CRYSTAL: gain SLOW | SPACE: 50% speed for 5s | STORE: 3 charges | ESC: pause menu", 11, Theme.MUTED), BorderLayout.SOUTH);
         add(footer, BorderLayout.SOUTH);
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "pause");
         getActionMap().put("pause", new AbstractAction() {
@@ -125,6 +133,37 @@ public final class PlayScreen extends GameScreen {
         input.getActionMap().put("activate-slow", slowAction);
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(' '), "activate-slow");
         getActionMap().put("activate-slow", slowAction);
+    }
+
+    private void configurePauseMenu() {
+        pauseMenu.setLayout(new BoxLayout(pauseMenu, BoxLayout.Y_AXIS));
+        pauseMenu.setBackground(Theme.PANEL);
+        pauseMenu.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.PURPLE),
+                BorderFactory.createEmptyBorder(16, 22, 16, 22)));
+        pauseMenu.setPreferredSize(new Dimension(390, 375));
+        pauseMenu.add(Box.createVerticalGlue());
+        pauseMenu.add(Theme.label("PAUSED", 32, Theme.PURPLE));
+        pauseMenu.add(Box.createVerticalStrut(8));
+        pauseMenu.add(Theme.label("Game and Slow timer are stopped", 12, Theme.MUTED));
+        pauseMenu.add(Box.createVerticalStrut(18));
+        JButton resume = Theme.button("RESUME [ESC]", Theme.GREEN);
+        resume.setMaximumSize(new Dimension(285, 48));
+        resume.addActionListener(e -> togglePause());
+        pauseMenu.add(resume);
+        pauseMenu.add(Box.createVerticalStrut(10));
+        JButton menu = Theme.button("MAIN MENU", Theme.PURPLE);
+        menu.setMaximumSize(new Dimension(285, 48));
+        menu.addActionListener(e -> window.showMenu());
+        pauseMenu.add(menu);
+        pauseMenu.add(Box.createVerticalStrut(10));
+        JButton quit = Theme.button("QUIT GAME", Theme.RED);
+        quit.setMaximumSize(new Dimension(285, 48));
+        quit.addActionListener(e -> window.dispose());
+        pauseMenu.add(quit);
+        pauseMenu.add(Box.createVerticalStrut(14));
+        pauseMenu.add(Theme.label("MAIN MENU ends the current run", 11, Theme.MUTED));
+        pauseMenu.add(Box.createVerticalGlue());
+        pauseMenu.setVisible(false);
     }
 
     public void setModel(GameModel value) {
@@ -189,7 +228,7 @@ public final class PlayScreen extends GameScreen {
             String message = hit.chargeAdded() ? "+20 / SLOW READY" : hit.eliminated() ? "+" + hit.reward() : "ARMOR BROKEN";
             effects.add(new Effect(hit.x(), hit.y(), message, color));
             showFeedback(hit.frostReward() ? (hit.chargeAdded() ? "+20 / SLOW READY - press SPACE when needed!" :
-                    "+20 / Slow charge already full (1/1).") : hit.eliminated() ? "SPELL HIT  " + message :
+                    "+20 / Slow charges already full (3/3).") : hit.eliminated() ? "SPELL HIT  " + message :
                     "ARMOR BROKEN - type the NEW word to finish it!", color);
         } else {
             showFeedback("NO MATCH - check the word and try again. No HP penalty.", Theme.RED);
@@ -208,7 +247,7 @@ public final class PlayScreen extends GameScreen {
     private void activateSlow() {
         if (model == null || model.isPaused() || model.isGameOver()) return;
         if (model.activateSlow()) {
-            showFeedback("SLOW ACTIVE - enemy movement halved for 4 seconds!", Theme.ICE);
+            showFeedback("SLOW ACTIVE - enemy movement halved for 5 seconds!", Theme.ICE);
         } else {
             showFeedback(model.isSlowActive() ? "Slow is already active; effects do not stack." :
                     "No charge. Defeat a crystal-marked Frost Slime.", Theme.MUTED);
@@ -231,6 +270,8 @@ public final class PlayScreen extends GameScreen {
     private void updatePauseUi() {
         input.setEnabled(!model.isPaused());
         pause.setText(model.isPaused() ? "RESUME [ESC]" : "PAUSE [ESC]");
+        pauseMenu.setVisible(model.isPaused());
+        arena.revalidate();
         updateSlowUi();
         if (!model.isPaused()) input.requestFocusInWindow();
         arena.repaint();
@@ -245,9 +286,10 @@ public final class PlayScreen extends GameScreen {
 
     private void updateSlowUi() {
         slowButton.setEnabled(!model.isPaused() && !model.isGameOver() && model.hasSlowCharge() && !model.isSlowActive());
-        slowButton.setText(model.isSlowActive() ? String.format(Locale.ROOT, "SLOW %.1fs | NEXT %d/1",
-                model.getSlowRemaining(), model.hasSlowCharge() ? 1 : 0) :
-                model.hasSlowCharge() ? "SLOW [SPACE] READY 1/1" : "SLOW [SPACE] 0/1");
+        slowButton.setText(model.isSlowActive() ? String.format(Locale.ROOT, "SLOW %.1fs | NEXT %d/%d",
+                model.getSlowRemaining(), model.getSlowCharges(), SlowPowerUp.MAX_CHARGES) :
+                String.format(Locale.ROOT, "SLOW [SPACE] %d/%d%s", model.getSlowCharges(), SlowPowerUp.MAX_CHARGES,
+                        model.hasSlowCharge() ? " READY" : ""));
     }
 
     /** Scaled, letterboxed world; resizing never changes game coordinates or speed. */
@@ -287,9 +329,6 @@ public final class PlayScreen extends GameScreen {
             if (model.isPaused()) {
                 g.setColor(new Color(Theme.BACKGROUND.getRed(), Theme.BACKGROUND.getGreen(), Theme.BACKGROUND.getBlue(), 235));
                 g.fillRect(0, 0, GameModel.WIDTH, GameModel.HEIGHT);
-                centered(g, "PAUSED", 52, 245, Theme.PURPLE);
-                centered(g, "Press ESC or RESUME to continue", 18, 292, Theme.TEXT);
-                centered(g, "The clock and enemies are stopped.", 13, 323, Theme.MUTED);
             }
             g.dispose();
         }

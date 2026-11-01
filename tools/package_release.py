@@ -28,8 +28,8 @@ with ZipFile(release / (prefix + '-Windows.zip'), 'w', ZIP_DEFLATED) as archive:
         'Type an enemy word and press Enter. Escape pauses.\n'
         'Normal enemies: one word. Armored enemies: two different words.\n'
         'Crystal Frost Slime: one word, +20 points and one Slow charge.\n'
-        'Space: use Slow for 50% enemy movement for 4 seconds. Stores 1 charge.\n'
-        'F1/F2/F3: compare the existing themes.\n'
+        'Space: use Slow for 50% enemy movement for 5 seconds. Stores 3 charges.\n'
+        'Escape: pause menu with Resume, Main Menu and Quit.\n'
         'Scores are saved in %USERPROFILE%\\.type-strike\\scores.txt\n'
         'This archive does not include a Java runtime.\n')
 for path in release.glob(prefix + '*.zip'):

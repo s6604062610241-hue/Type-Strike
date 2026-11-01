@@ -2,7 +2,7 @@
 
 - Respond to the owner in Thai; the owner may write in English.
 - Focus on developing and testing the Java game.
-- Current development order: gameplay first, then sound effects/music, then art/graphics, and documentation last. Keep the existing theme choices undecided until the owner chooses; do not finalize a theme implicitly.
+- Current development order: gameplay first, then sound effects/music, then art/graphics, and documentation last. The theme comparison was a temporary preview, not a production feature; keep the original v1.0.0 colors without theme controls until the owner chooses a theme.
 - The owner will write the academic report. Do not create or update reports unless explicitly asked. Explain the OOP concepts when requested.
 - Preserve the existing report, guides and presentation notes as historical Version 1 artifacts.
 - Preserve named version snapshots. Never modify an existing snapshot to reflect later changes.

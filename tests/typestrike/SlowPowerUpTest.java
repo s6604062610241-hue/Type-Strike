@@ -31,15 +31,38 @@ public final class SlowPowerUpTest {
     public static void main(String[] args) {
         SlowPowerUp power = new SlowPowerUp();
         check(!power.activate() && !power.isCharged(), "Cannot activate without a charge");
-        check(power.collect() && !power.collect(), "Store at most one charge");
-        check(power.activate() && !power.isCharged(), "Activation consumes charge");
-        check(near(power.advance(2), 1) && near(power.getRemaining(), 2), "Half speed for two seconds");
-        check(power.collect(), "Can store the next charge while active");
-        check(!power.activate() && power.isCharged(), "Cannot stack or spend a banked charge while active");
-        check(near(power.advance(3), 2) && !power.isActive(), "Expiration splits slow and normal portions of a frame");
-        check(power.activate() && near(power.getRemaining(), 4), "Banked charge works after expiration");
-        check(near(power.advance(4), 2) && !power.isActive(), "Exact four-second duration");
+        check(power.collect() && power.collect() && power.collect() && !power.collect(), "Store at most three charges");
+        check(power.getCharges() == 3, "Charge display count matches capacity");
+        check(power.activate() && power.getCharges() == 2, "Activation consumes exactly one charge");
+        check(near(power.advance(2), 1) && near(power.getRemaining(), 3), "Half speed for two seconds");
+        check(power.collect() && power.getCharges() == 3, "Can refill while active");
+        check(!power.activate() && power.getCharges() == 3, "Cannot stack or spend a banked charge while active");
+        check(near(power.advance(4), 2.5) && !power.isActive(), "Expiration splits slow and normal portions of a frame");
+        check(power.activate() && near(power.getRemaining(), 5) && power.getCharges() == 2, "Banked charge works after expiration");
+        check(near(power.advance(5), 2.5) && !power.isActive(), "Exact five-second duration");
         check(near(power.advance(1), 1), "Normal movement after effect expires");
+
+        GameModel stock = new GameModel(new WordRepository(), new Random(101));
+        int frostKills = 0;
+        for (int frame = 0; frame < 3000 && frostKills < 4; frame++) {
+            stock.update(0.1);
+            for (Enemy target : List.copyOf(stock.getEnemies())) {
+                GameModel.HitResult hit = stock.submit(target.getWord());
+                if (!hit.eliminated()) stock.submit(target.getWord());
+                if (hit.frostReward()) {
+                    frostKills++;
+                    check(stock.getSlowCharges() == Math.min(3, frostKills), "Typed Frost kills fill three slots and stop at cap");
+                    check(hit.chargeAdded() == (frostKills <= 3), "Full inventory still scores without adding charge");
+                }
+            }
+        }
+        check(frostKills >= 4 && stock.getSlowCharges() == 3, "Can stockpile three earned charges");
+        for (int used = 1; used <= 3; used++) {
+            check(stock.activateSlow() && stock.getSlowCharges() == 3 - used, "Each use consumes one stored charge");
+            stock.update(5);
+            check(!stock.isSlowActive(), "Can activate the next charge after five seconds");
+        }
+        check(!stock.activateSlow(), "Cannot use a fourth charge after spending all three");
 
         GameModel slow = chargedGame();
         GameModel normal = chargedGame();

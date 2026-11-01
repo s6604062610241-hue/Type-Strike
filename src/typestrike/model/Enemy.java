@@ -30,7 +30,9 @@ public abstract class Enemy {
 
     public final double getSpeed(double elapsed) {
         double lengthSpeed = Math.max(22, Math.min(56, 190.0 / (word.length() + 1)));
-        return lengthSpeed * (1 + Math.min(0.8, elapsed / 180.0)) * speedMultiplier();
+        // 15% gentler start; 30-second grace, then +10% per minute (cap +50%).
+        double progression = 1 + Math.min(0.5, Math.max(0, elapsed - 30) / 600.0);
+        return lengthSpeed * 0.85 * progression * speedMultiplier();
     }
 
     /** Returns true when this matching word eliminates the enemy. */
