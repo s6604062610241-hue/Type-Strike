@@ -1,14 +1,15 @@
 """Package the current source and playable version; never generate or change reports."""
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
+from publication_files import SOURCE_DIRS, SOURCE_FILES
 
 root = Path(__file__).resolve().parents[1]
 release = root / 'release'
 release.mkdir(exist_ok=True)
 version = (root / 'VERSION').read_text().strip()
 prefix = 'TypeStrike-v' + version
-source_roots = ['src', 'resources', 'tests', 'docs', 'tools', '.vscode']
-source_files = ['.gitignore', 'AGENTS.md', 'VERSION', 'VERSIONS.md', 'README.md', 'Build.cmd', 'Play.cmd', 'build.ps1', 'run.ps1', 'test.ps1']
+source_roots = SOURCE_DIRS
+source_files = SOURCE_FILES
 with ZipFile(release / (prefix + '-Source.zip'), 'w', ZIP_DEFLATED) as archive:
     for folder in source_roots:
         for path in sorted((root / folder).rglob('*')):

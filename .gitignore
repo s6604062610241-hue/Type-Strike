@@ -5,4 +5,10 @@ versions/
 tmp/
 *.log
 .DS_Store
+# Academic and personal working documents stay on this PC.
+docs/
+AGENTS.md
+VERSIONS.md
+tools/create_report.py
+tools/backup_version.py
 
