@@ -13,3 +13,5 @@ if ($LASTEXITCODE -ne 0) { throw 'Game tests failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Slow power-up tests failed.' }
 & (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.DifficultyBalanceTest
 if ($LASTEXITCODE -ne 0) { throw 'Difficulty balance tests failed.' }
+& (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.SpecialEnemiesTest
+if ($LASTEXITCODE -ne 0) { throw 'Special enemy tests failed.' }

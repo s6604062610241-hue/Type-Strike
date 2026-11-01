@@ -31,6 +31,8 @@ public final class MenuScreen extends GameScreen {
                 Graphics2D g = (Graphics2D) graphics.create();
                 PixelArt.wizard(g, getWidth() / 2 - 32, 8, 4);
                 PixelArt.enemy(g, getWidth() / 2 - 175, 16, 3, false, false);
+                PixelArt.enemy(g, getWidth() / 2 - 265, 16, 3, false, false, false, true, false);
+                PixelArt.enemy(g, getWidth() / 2 - 355, 16, 3, false, false, false, false, true);
                 PixelArt.enemy(g, getWidth() / 2 + 130, 16, 3, true, true);
                 PixelArt.enemy(g, getWidth() / 2 + 220, 16, 3, false, false, true);
                 g.dispose();
@@ -58,6 +60,8 @@ public final class MenuScreen extends GameScreen {
         add(records);
         add(Box.createVerticalStrut(12));
         add(Theme.label("NORMAL +10   |   ARMORED: 2 words / +25   |   FROST: 1 word / +20", 12, Theme.MUTED));
+        add(Box.createVerticalStrut(8));
+        add(Theme.label("BLAST +15: defeats nearby enemies / breaks armor | HEALER +20: restores nearby armor", 11, Theme.MUTED));
         add(Box.createVerticalStrut(8));
         add(Theme.label("ESC: pause / resume    |    Pause menu: main menu or quit", 12, Theme.MUTED));
         add(Box.createVerticalStrut(12));

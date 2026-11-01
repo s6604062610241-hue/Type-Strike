@@ -18,6 +18,11 @@ public final class ArmoredEnemy extends Enemy {
     }
     @Override protected double speedMultiplier() { return 0.8; }
     @Override public boolean hasArmor() { return armored; }
+    @Override public boolean restoreArmor() {
+        if (armored) return false;
+        armored = true;
+        return true;
+    }
     @Override public int getReward() { return 25; }
     @Override public String getKind() { return "ARMORED"; }
 }

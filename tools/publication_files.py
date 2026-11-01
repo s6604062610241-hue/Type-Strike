@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 from zipfile import ZipFile, ZIP_DEFLATED
 import json
 
-SOURCE_DIRS = ('src', 'resources', 'tests', '.vscode')
+SOURCE_DIRS = ('src', 'resources', 'tests', '.vscode', '.github')
 SOURCE_FILES = (
     '.gitignore', 'VERSION', 'README.md', 'Build.cmd', 'Play.cmd',
     'build.ps1', 'run.ps1', 'test.ps1', 'tools/package_release.py', 'tools/publication_files.py'

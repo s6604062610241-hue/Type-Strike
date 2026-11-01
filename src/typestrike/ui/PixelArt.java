@@ -27,7 +27,23 @@ final class PixelArt {
     }
 
     static void enemy(Graphics2D g, int x, int y, int scale, boolean armor, boolean elite, boolean frost) {
-        draw(g, SLIME, x, y, scale, frost ? Theme.ICE : elite ? Theme.GOLD : Theme.RED);
+        enemy(g, x, y, scale, armor, elite, frost, false, false);
+    }
+
+    static void enemy(Graphics2D g, int x, int y, int scale, boolean armor, boolean elite,
+                      boolean frost, boolean blast, boolean healer) {
+        draw(g, SLIME, x, y, scale, healer ? Theme.GREEN : blast ? Theme.PURPLE : frost ? Theme.ICE : elite ? Theme.GOLD : Theme.RED);
+        if (blast) {
+            g.setColor(Theme.TEXT);
+            g.fillRect(x + 7 * scale, y - 2 * scale, 2 * scale, 3 * scale);
+            g.setColor(Theme.GOLD);
+            g.fillRect(x + 9 * scale, y - 3 * scale, 2 * scale, 2 * scale);
+        }
+        if (healer) {
+            g.setColor(Theme.TEXT);
+            g.fillRect(x + 6 * scale, y - 2 * scale, 4 * scale, scale);
+            g.fillRect(x + 7 * scale, y - 3 * scale, 2 * scale, 3 * scale);
+        }
         if (frost) {
             g.setColor(Theme.TEXT);
             g.fillRect(x + 7 * scale, y - 2 * scale, 2 * scale, 2 * scale);

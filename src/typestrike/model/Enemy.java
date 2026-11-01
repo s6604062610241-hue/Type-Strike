@@ -43,6 +43,9 @@ public abstract class Enemy {
     protected final void setWord(String value) { word = value; }
     public boolean hasArmor() { return false; }
     public boolean dropsSlowCharge() { return false; }
+    public double getBlastRadius() { return 0; }
+    /** Most enemies cannot restore armor; the armored subtype owns this state. */
+    public boolean restoreArmor() { return false; }
     public final String getWord() { return word; }
     public final double getX() { return x; }
     public final double getY() { return y; }

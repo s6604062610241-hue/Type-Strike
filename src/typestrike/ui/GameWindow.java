@@ -30,7 +30,7 @@ public final class GameWindow extends JFrame {
         setSize(1140, 820);
         setLocationRelativeTo(null);
         showScreen("menu", menu);
-        setTitle("Type Strike v1.1.2 | Slow Power-Up");
+        setTitle("Type Strike v1.2.0 | Blast & Healer");
         addWindowFocusListener(new java.awt.event.WindowAdapter() {
             @Override public void windowLostFocus(java.awt.event.WindowEvent e) {
                 if (current == play) play.pauseIfRunning();

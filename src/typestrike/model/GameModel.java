@@ -1,6 +1,7 @@
 package typestrike.model;
 
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ public final class GameModel {
     private final Base base = new Base();
     private final SlowPowerUp slow = new SlowPowerUp();
     private final List<Enemy> enemies = new ArrayList<>();
+    private final List<CombatEffect> combatEffects = new ArrayList<>();
     private double elapsed;
     private double spawnCountdown = 0.8;
     private int score;
@@ -33,6 +35,8 @@ public final class GameModel {
 
     public record HitResult(boolean matched, boolean eliminated, double x, double y, int reward,
                             boolean frostReward, boolean chargeAdded) { }
+    public record CombatEffect(String kind, double x, double y, double targetX, double targetY,
+                               double remaining) { }
 
     public GameModel(WordRepository words, Random random) {
         this.words = words;
@@ -43,6 +47,11 @@ public final class GameModel {
         if (paused || isGameOver() || seconds <= 0) return;
         if (!Double.isFinite(seconds)) throw new IllegalArgumentException("Invalid elapsed time");
         elapsed += seconds;
+        for (int i = 0; i < combatEffects.size(); i++) {
+            CombatEffect e = combatEffects.get(i);
+            combatEffects.set(i, new CombatEffect(e.kind(), e.x(), e.y(), e.targetX(), e.targetY(), e.remaining() - seconds));
+        }
+        combatEffects.removeIf(e -> e.remaining() <= 0);
         double movementSeconds = slow.advance(seconds);
         Iterator<Enemy> iterator = enemies.iterator();
         while (iterator.hasNext()) {
@@ -52,6 +61,14 @@ public final class GameModel {
                 base.takeDamage(enemy.getWord().length());
                 iterator.remove();
                 if (isGameOver()) return;
+            }
+        }
+        for (Enemy enemy : enemies) {
+            if (enemy instanceof HealerEnemy healer && healer.advanceHealing(seconds)) {
+                Enemy target = getHealTarget(healer);
+                if (target != null && target.restoreArmor()) {
+                    combatEffects.add(new CombatEffect("HEAL", healer.getX(), healer.getY(), target.getX(), target.getY(), 0.7));
+                }
             }
         }
         spawnCountdown -= seconds;
@@ -80,10 +97,19 @@ public final class GameModel {
         spawned++;
         // Guaranteed introductions let the player learn each rule before random mixes.
         double roll = random.nextDouble();
-        if (spawned == 8 || (spawned > 8 && roll < 0.16)) {
+        if (spawned == 12) {
+            enemies.add(new BlastEnemy(spawned, word, x, y));
+        } else if (spawned == 16 && enemies.stream().noneMatch(e -> e instanceof HealerEnemy)) {
+            enemies.add(new HealerEnemy(spawned, word, x, y));
+        } else if (spawned == 8 || (spawned > 8 && roll < 0.16)) {
             enemies.add(new FrostEnemy(spawned, word, x, y));
         } else if (spawned == 6 || (spawned > 6 && roll < (spawned > 8 ? 0.44 : 0.28))) {
             enemies.add(new ArmoredEnemy(spawned, word, x, y));
+        } else if (spawned == 12 || (spawned > 12 && roll < 0.56)) {
+            enemies.add(new BlastEnemy(spawned, word, x, y));
+        } else if ((spawned == 16 || (spawned > 16 && roll < 0.64))
+                && enemies.stream().noneMatch(e -> e instanceof HealerEnemy)) {
+            enemies.add(new HealerEnemy(spawned, word, x, y));
         } else {
             enemies.add(new NormalEnemy(spawned, word, x, y));
         }
@@ -99,25 +125,60 @@ public final class GameModel {
         if (paused || isGameOver() || input == null || input.isBlank()) return noHit();
         submissions++;
         String word = input.trim().toLowerCase(Locale.ROOT);
-        Iterator<Enemy> iterator = enemies.iterator();
-        while (iterator.hasNext()) {
-            Enemy enemy = iterator.next();
+        for (Enemy enemy : List.copyOf(enemies)) {
             if (!enemy.getWord().equals(word)) continue;
             matches++;
             // Polymorphism: each subtype decides how to react to the same call.
             boolean eliminated = enemy.onWordMatched(words, random, activeWords());
-            int reward = eliminated ? enemy.getReward() : 0;
-            boolean frostReward = eliminated && enemy.dropsSlowCharge();
-            boolean chargeAdded = frostReward && slow.collect();
+            int beforeScore = score;
+            int beforeCharges = slow.getCharges();
+            boolean frostReward = false;
             if (eliminated) {
-                iterator.remove();
-                score += reward;
-                defeated++;
+                ArrayDeque<Enemy> blasts = new ArrayDeque<>();
+                frostReward = eliminate(enemy, blasts);
+                while (!blasts.isEmpty()) {
+                    Enemy blast = blasts.removeFirst();
+                    combatEffects.add(new CombatEffect("BLAST", blast.getX(), blast.getY(), 0, 0, 0.7));
+                    for (Enemy nearby : List.copyOf(enemies)) {
+                        if (Math.hypot(nearby.getX() - blast.getX(), nearby.getY() - blast.getY()) <= blast.getBlastRadius()
+                                && nearby.onWordMatched(words, random, activeWords())) {
+                            frostReward |= eliminate(nearby, blasts);
+                        }
+                    }
+                }
             }
-            return new HitResult(true, eliminated, enemy.getX(), enemy.getY(), reward, frostReward, chargeAdded);
+            return new HitResult(true, eliminated, enemy.getX(), enemy.getY(), score - beforeScore,
+                    frostReward, slow.getCharges() > beforeCharges);
         }
         return noHit();
     }
+
+    private boolean eliminate(Enemy enemy, ArrayDeque<Enemy> blasts) {
+        if (!enemies.remove(enemy)) return false;
+        score += enemy.getReward();
+        defeated++;
+        if (enemy.getBlastRadius() > 0) blasts.addLast(enemy);
+        if (enemy.dropsSlowCharge()) { slow.collect(); return true; }
+        return false;
+    }
+
+    /** Nearest exposed armored enemy; keeping its word preserves any typing in progress. */
+    public Enemy getHealTarget(HealerEnemy healer) {
+        if (!enemies.contains(healer)) return null;
+        Enemy target = null;
+        double distance = HealerEnemy.RANGE;
+        for (Enemy enemy : enemies) {
+            if (!(enemy instanceof ArmoredEnemy) || enemy.hasArmor()) continue;
+            double d = Math.hypot(enemy.getX() - healer.getX(), enemy.getY() - healer.getY());
+            if (d <= distance && (target == null || d < distance || enemy.getId() < target.getId())) {
+                distance = d;
+                target = enemy;
+            }
+        }
+        return target;
+    }
+
+    public List<CombatEffect> getCombatEffects() { return Collections.unmodifiableList(combatEffects); }
 
     private HitResult noHit() { return new HitResult(false, false, 0, 0, 0, false, false); }
 

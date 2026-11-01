@@ -11,4 +11,6 @@ AGENTS.md
 VERSIONS.md
 tools/create_report.py
 tools/backup_version.py
+# Family side projects must never be published with the class project.
+local-only/
 

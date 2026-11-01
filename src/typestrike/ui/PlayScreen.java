@@ -31,6 +31,8 @@ import javax.swing.Timer;
 import typestrike.model.Enemy;
 import typestrike.model.GameModel;
 import typestrike.model.SlowPowerUp;
+import typestrike.model.BlastEnemy;
+import typestrike.model.HealerEnemy;
 
 public final class PlayScreen extends GameScreen {
     private final JTextField input = new JTextField();
@@ -225,10 +227,10 @@ public final class PlayScreen extends GameScreen {
         input.setText("");
         if (hit.matched()) {
             Color color = hit.frostReward() ? Theme.ICE : hit.eliminated() ? Theme.GREEN : Theme.GOLD;
-            String message = hit.chargeAdded() ? "+20 / SLOW READY" : hit.eliminated() ? "+" + hit.reward() : "ARMOR BROKEN";
+            String message = hit.chargeAdded() ? "+" + hit.reward() + " / SLOW READY" : hit.eliminated() ? "+" + hit.reward() : "ARMOR BROKEN";
             effects.add(new Effect(hit.x(), hit.y(), message, color));
-            showFeedback(hit.frostReward() ? (hit.chargeAdded() ? "+20 / SLOW READY - press SPACE when needed!" :
-                    "+20 / Slow charges already full (3/3).") : hit.eliminated() ? "SPELL HIT  " + message :
+            showFeedback(hit.frostReward() ? (hit.chargeAdded() ? "+" + hit.reward() + " / SLOW READY - press SPACE when needed!" :
+                    "+" + hit.reward() + " / Slow charges already full (3/3).") : hit.eliminated() ? "SPELL HIT  " + message :
                     "ARMOR BROKEN - type the NEW word to finish it!", color);
         } else {
             showFeedback("NO MATCH - check the word and try again. No HP penalty.", Theme.RED);
@@ -310,6 +312,7 @@ public final class PlayScreen extends GameScreen {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             drawField(g);
             drawBase(g);
+            drawCombat(g);
             drawEnemies(g);
             for (Effect effect : effects) {
                 g.setColor(new Color(effect.color.getRed(), effect.color.getGreen(), effect.color.getBlue(), (int) (effect.life / 0.48 * 220)));
@@ -387,11 +390,14 @@ public final class PlayScreen extends GameScreen {
                 int y = (int) enemy.getY();
                 boolean elite = enemy.getKind().equals("ARMORED");
                 boolean frost = enemy.dropsSlowCharge();
-                PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite, frost);
-                if (frost) {
-                    g.setColor(Theme.ICE);
+                boolean blast = enemy.getBlastRadius() > 0;
+                boolean healer = enemy instanceof HealerEnemy;
+                PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite, frost, blast, healer);
+                if (frost || blast || healer) {
+                    g.setColor(healer ? Theme.GREEN : blast ? Theme.PURPLE : Theme.ICE);
                     g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 10));
-                    g.drawString("SLOW", x - 12, y + 36);
+                    String tag = healer ? "HEAL" : blast ? "BLAST" : "SLOW";
+                    g.drawString(tag, x - g.getFontMetrics().stringWidth(tag) / 2, y + 36);
                     g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 17));
                 }
                 if (Math.hypot(x - GameModel.BASE_X, y - GameModel.BASE_Y) < 150) {
@@ -410,7 +416,7 @@ public final class PlayScreen extends GameScreen {
                     label.y = Math.min(GameModel.HEIGHT - 32, label.y);
                 }
                 labels.add(label);
-                Color accent = frost ? Theme.ICE : enemy.hasArmor() ? Theme.GOLD : elite ? Theme.PURPLE : Theme.RED;
+                Color accent = healer ? Theme.GREEN : blast ? Theme.PURPLE : frost ? Theme.ICE : enemy.hasArmor() ? Theme.GOLD : elite ? Theme.PURPLE : Theme.RED;
                 g.setColor(Theme.FIELD_BORDER);
                 g.drawLine(label.x + width / 2, label.y + 27, x, y - 12);
                 g.setColor(Theme.BACKGROUND);
@@ -429,6 +435,44 @@ public final class PlayScreen extends GameScreen {
                     g.fillRect(x + 2, y + 30, 6, 3);
                 }
             }
+        }
+
+        private void drawCombat(Graphics2D g) {
+            for (Enemy enemy : model.getEnemies()) {
+                if (enemy.getBlastRadius() > 0) {
+                    int radius = (int) enemy.getBlastRadius();
+                    g.setColor(new Color(Theme.PURPLE.getRed(), Theme.PURPLE.getGreen(), Theme.PURPLE.getBlue(), 70));
+                    g.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{4, 8}, 0));
+                    g.drawOval((int) enemy.getX() - radius, (int) enemy.getY() - radius, radius * 2, radius * 2);
+                }
+                if (enemy instanceof HealerEnemy healer && healer.isPreparingHeal()) {
+                    Enemy target = model.getHealTarget(healer);
+                    if (target != null) {
+                        g.setColor(Theme.GREEN);
+                        g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{5, 5}, 0));
+                        g.drawLine((int) healer.getX(), (int) healer.getY(), (int) target.getX(), (int) target.getY());
+                        g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 11));
+                        g.drawString(String.format(Locale.ROOT, "HEAL %.1fs", healer.getHealRemaining()),
+                                (int) healer.getX() - 30, (int) healer.getY() + 50);
+                    }
+                }
+            }
+            g.setStroke(new BasicStroke(2));
+            for (GameModel.CombatEffect effect : model.getCombatEffects()) {
+                if (effect.kind().equals("BLAST")) {
+                    double progress = 1 - effect.remaining() / 0.7;
+                    int radius = (int) (BlastEnemy.RADIUS * (0.4 + 0.6 * progress));
+                    g.setColor(Theme.PURPLE);
+                    g.drawOval((int) effect.x() - radius, (int) effect.y() - radius, radius * 2, radius * 2);
+                } else {
+                    g.setColor(Theme.GREEN);
+                    g.drawLine((int) effect.x(), (int) effect.y(), (int) effect.targetX(), (int) effect.targetY());
+                    g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
+                    g.drawString("ARMOR RESTORED", (int) Math.min(GameModel.WIDTH - 135, effect.targetX() - 40),
+                            (int) Math.max(75, effect.targetY() - 60));
+                }
+            }
+            g.setStroke(new BasicStroke(1));
         }
 
         private void centered(Graphics2D g, String text, int size, int y, Color color) {
