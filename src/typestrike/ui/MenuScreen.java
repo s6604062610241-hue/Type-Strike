@@ -1,6 +1,6 @@
 package typestrike.ui;
 
-import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -9,6 +9,10 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JComboBox;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 
 public final class MenuScreen extends GameScreen {
     private final JLabel records = Theme.label("", 16, Theme.GOLD);
@@ -21,14 +25,49 @@ public final class MenuScreen extends GameScreen {
         add(Box.createVerticalGlue());
         add(Theme.label("T Y P E   /   D E F E N D   /   S U R V I V E", 13, Theme.GREEN));
         add(Box.createVerticalStrut(16));
-        add(Theme.label("TYPE STRIKE", 68, Theme.TEXT));
+        add(Theme.label("TYPE STRIKE", 60, Theme.TEXT));
         add(Box.createVerticalStrut(8));
         add(Theme.label("Defend the last spell.", 19, Theme.PURPLE));
-        add(Box.createVerticalStrut(105));
+        add(Box.createVerticalStrut(12));
+        JComboBox<Theme.Palette> themes = new JComboBox<>(Theme.Palette.values());
+        themes.setSelectedItem(Theme.current());
+        themes.setFont(Theme.MONO);
+        themes.setForeground(Theme.TEXT);
+        themes.setBackground(Theme.PANEL);
+        themes.setAlignmentX(0.5f);
+        themes.setMaximumSize(new Dimension(345, 32));
+        themes.getAccessibleContext().setAccessibleName("Preview theme");
+        themes.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean selected, boolean focus) {
+                Component renderer = super.getListCellRendererComponent(list, value, index, selected, focus);
+                renderer.setBackground(selected ? Theme.SELECTION : Theme.PANEL);
+                renderer.setForeground(Theme.TEXT);
+                return renderer;
+            }
+        });
+        themes.addActionListener(e -> window.selectTheme(themes.getSelectedIndex()));
+        add(themes);
+        JPanel sprites = new JPanel() {
+            @Override protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+                Graphics2D g = (Graphics2D) graphics.create();
+                PixelArt.wizard(g, getWidth() / 2 - 32, 8, 4);
+                PixelArt.enemy(g, getWidth() / 2 - 175, 16, 3, false, false);
+                PixelArt.enemy(g, getWidth() / 2 + 130, 16, 3, true, true);
+                PixelArt.enemy(g, getWidth() / 2 + 220, 16, 3, false, false, true);
+                g.dispose();
+            }
+        };
+        sprites.setOpaque(false);
+        sprites.setPreferredSize(new Dimension(440, 82));
+        sprites.setMinimumSize(new Dimension(440, 82));
+        sprites.setMaximumSize(new Dimension(Integer.MAX_VALUE, 82));
+        add(sprites);
         add(Theme.label("Your tower stands at the center. Every word is a spell.", 15, Theme.MUTED));
         add(Box.createVerticalStrut(9));
         add(Theme.label("Type an enemy's word, then press ENTER to strike.", 15, Theme.TEXT));
-        add(Box.createVerticalStrut(22));
+        add(Box.createVerticalStrut(16));
         JButton start = Theme.button("START SURVIVAL  >", Theme.GREEN);
         start.addActionListener(e -> window.startGame());
         start.setMaximumSize(new Dimension(310, 52));
@@ -38,16 +77,16 @@ public final class MenuScreen extends GameScreen {
         quit.addActionListener(e -> window.dispose());
         quit.setMaximumSize(new Dimension(310, 46));
         add(quit);
-        add(Box.createVerticalStrut(25));
+        add(Box.createVerticalStrut(16));
         add(records);
-        add(Box.createVerticalStrut(20));
-        add(Theme.label("PINK: 1 word / +10     GOLD + HELMET: 2 words / +25", 13, Theme.MUTED));
+        add(Box.createVerticalStrut(12));
+        add(Theme.label("NORMAL +10   |   ARMORED: 2 words / +25   |   FROST: 1 word / +20", 12, Theme.MUTED));
         add(Box.createVerticalStrut(8));
-        add(Theme.label("Short words move faster. ESC pauses. Losing focus pauses automatically.", 12, Theme.MUTED));
+        add(Theme.label("F1 / F2 / F3: compare themes    ESC: pause    Focus loss: auto-pause", 12, Theme.MUTED));
         add(Box.createVerticalStrut(12));
         add(warning);
         add(Box.createVerticalGlue());
-        add(Theme.label("JAVA / OOP MINI PROJECT     -     ORIGINAL PLACEHOLDER PIXEL ART", 11, Theme.MUTED));
+        add(Theme.label("CRYSTAL FROST SLIME: grants SLOW  |  SPACE: 50% enemy speed for 4s  |  Store 1 charge", 11, Theme.ICE));
     }
 
     @Override public void onShow() {
@@ -60,13 +99,9 @@ public final class MenuScreen extends GameScreen {
     @Override protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         Graphics2D g = (Graphics2D) graphics.create();
-        g.setColor(new Color(21, 30, 46));
+        g.setColor(Theme.GRID);
         for (int x = 0; x < getWidth(); x += 32) g.drawLine(x, 0, x, getHeight());
         for (int y = 0; y < getHeight(); y += 32) g.drawLine(0, y, getWidth(), y);
-        int y = Math.max(0, (getHeight() - 760) / 2) + 245;
-        PixelArt.wizard(g, getWidth() / 2 - 32, y, 4);
-        PixelArt.enemy(g, getWidth() / 2 - 175, y + 8, 3, false, false);
-        PixelArt.enemy(g, getWidth() / 2 + 130, y + 8, 3, true, true);
         g.dispose();
     }
 }

@@ -40,6 +40,7 @@ public abstract class Enemy {
     protected double speedMultiplier() { return 1; }
     protected final void setWord(String value) { word = value; }
     public boolean hasArmor() { return false; }
+    public boolean dropsSlowCharge() { return false; }
     public final String getWord() { return word; }
     public final double getX() { return x; }
     public final double getY() { return y; }

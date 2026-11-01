@@ -20,6 +20,7 @@ public final class GameModel {
     private final Random random;
     // Composition: a game owns a base and a collection of enemies.
     private final Base base = new Base();
+    private final SlowPowerUp slow = new SlowPowerUp();
     private final List<Enemy> enemies = new ArrayList<>();
     private double elapsed;
     private double spawnCountdown = 0.8;
@@ -30,7 +31,8 @@ public final class GameModel {
     private int spawned;
     private boolean paused;
 
-    public record HitResult(boolean matched, boolean eliminated, double x, double y, int reward) { }
+    public record HitResult(boolean matched, boolean eliminated, double x, double y, int reward,
+                            boolean frostReward, boolean chargeAdded) { }
 
     public GameModel(WordRepository words, Random random) {
         this.words = words;
@@ -41,10 +43,11 @@ public final class GameModel {
         if (paused || isGameOver() || seconds <= 0) return;
         if (!Double.isFinite(seconds)) throw new IllegalArgumentException("Invalid elapsed time");
         elapsed += seconds;
+        double movementSeconds = slow.advance(seconds);
         Iterator<Enemy> iterator = enemies.iterator();
         while (iterator.hasNext()) {
             Enemy enemy = iterator.next();
-            enemy.move(seconds, elapsed, BASE_X, BASE_Y);
+            enemy.move(movementSeconds, elapsed, BASE_X, BASE_Y);
             if (Math.hypot(enemy.getX() - BASE_X, enemy.getY() - BASE_Y) <= 36) {
                 base.takeDamage(enemy.getWord().length());
                 iterator.remove();
@@ -66,7 +69,7 @@ public final class GameModel {
             int side = random.nextInt(4);
             x = side == 0 ? 70 : side == 1 ? WIDTH - 70 : 70 + random.nextDouble() * (WIDTH - 140);
             y = side == 2 ? 64 : side == 3 ? HEIGHT - 45 : 64 + random.nextDouble() * (HEIGHT - 109);
-            boolean crowded = false;
+            boolean crowded = y < 100 && x > 825; // Keep sprites clear of the health HUD.
             for (Enemy other : enemies) {
                 if (Math.hypot(x - other.getX(), y - other.getY()) < 105) crowded = true;
             }
@@ -75,9 +78,15 @@ public final class GameModel {
         }
         String word = words.nextWord(random, activeWords());
         spawned++;
-        // The sixth enemy introduces armor; later spawns mix both types.
-        boolean armor = spawned == 6 || (spawned > 6 && random.nextDouble() < 0.28);
-        enemies.add(armor ? new ArmoredEnemy(spawned, word, x, y) : new NormalEnemy(spawned, word, x, y));
+        // Guaranteed introductions let the player learn each rule before random mixes.
+        double roll = random.nextDouble();
+        if (spawned == 8 || (spawned > 8 && roll < 0.16)) {
+            enemies.add(new FrostEnemy(spawned, word, x, y));
+        } else if (spawned == 6 || (spawned > 6 && roll < (spawned > 8 ? 0.44 : 0.28))) {
+            enemies.add(new ArmoredEnemy(spawned, word, x, y));
+        } else {
+            enemies.add(new NormalEnemy(spawned, word, x, y));
+        }
     }
 
     private Set<String> activeWords() {
@@ -87,7 +96,7 @@ public final class GameModel {
     }
 
     public HitResult submit(String input) {
-        if (paused || isGameOver() || input == null || input.isBlank()) return new HitResult(false, false, 0, 0, 0);
+        if (paused || isGameOver() || input == null || input.isBlank()) return noHit();
         submissions++;
         String word = input.trim().toLowerCase(Locale.ROOT);
         Iterator<Enemy> iterator = enemies.iterator();
@@ -98,15 +107,27 @@ public final class GameModel {
             // Polymorphism: each subtype decides how to react to the same call.
             boolean eliminated = enemy.onWordMatched(words, random, activeWords());
             int reward = eliminated ? enemy.getReward() : 0;
+            boolean frostReward = eliminated && enemy.dropsSlowCharge();
+            boolean chargeAdded = frostReward && slow.collect();
             if (eliminated) {
                 iterator.remove();
                 score += reward;
                 defeated++;
             }
-            return new HitResult(true, eliminated, enemy.getX(), enemy.getY(), reward);
+            return new HitResult(true, eliminated, enemy.getX(), enemy.getY(), reward, frostReward, chargeAdded);
         }
-        return new HitResult(false, false, 0, 0, 0);
+        return noHit();
     }
+
+    private HitResult noHit() { return new HitResult(false, false, 0, 0, 0, false, false); }
+
+    public boolean activateSlow() {
+        return !paused && !isGameOver() && slow.activate();
+    }
+
+    public boolean hasSlowCharge() { return slow.isCharged(); }
+    public boolean isSlowActive() { return slow.isActive(); }
+    public double getSlowRemaining() { return slow.getRemaining(); }
 
     public void togglePause() { if (!isGameOver()) paused = !paused; }
     public boolean isPaused() { return paused; }

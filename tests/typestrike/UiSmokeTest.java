@@ -40,7 +40,7 @@ public final class UiSmokeTest {
         return null;
     }
 
-    private static void capture(GameWindow window, String name) throws Exception {
+    static void capture(GameWindow window, String name) throws Exception {
         window.validate();
         Container content = window.getContentPane();
         BufferedImage image = new BufferedImage(content.getWidth(), content.getHeight(), BufferedImage.TYPE_INT_RGB);

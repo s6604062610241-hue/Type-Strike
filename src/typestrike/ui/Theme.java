@@ -8,17 +8,74 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 
 final class Theme {
-    static final Color BACKGROUND = new Color(12, 17, 30);
-    static final Color PANEL = new Color(21, 29, 47);
-    static final Color TEXT = new Color(234, 241, 252);
-    static final Color MUTED = new Color(143, 162, 190);
-    static final Color GREEN = new Color(107, 244, 179);
-    static final Color PURPLE = new Color(183, 157, 255);
-    static final Color RED = new Color(255, 119, 139);
-    static final Color GOLD = new Color(255, 208, 117);
+    enum Palette {
+        MOONLIGHT("1 / 3  Moonlight Magic", "#101827", "#1B2540", "#F4F1E8", "#A5AEC8", "#6EE7B7", "#A78BFA", "#FF788B", "#F4CB79"),
+        FOREST("2 / 3  Enchanted Forest", "#142D26", "#203E32", "#F2E8CF", "#AEC5B0", "#91D1A0", "#E9C46A", "#F38B77", "#D9AC65"),
+        ARCADE("3 / 3  Retro Arcade", "#15152D", "#252543", "#F3F6FF", "#B4B5D8", "#67DFF0", "#FF76AD", "#FF927A", "#FFE08A");
+
+        private final String display;
+        private final String[] colors;
+
+        Palette(String display, String... colors) { this.display = display; this.colors = colors; }
+        @Override public String toString() { return display; }
+    }
+
+    static Color BACKGROUND;
+    static Color PANEL;
+    static Color TEXT;
+    static Color MUTED;
+    static Color GREEN;
+    static Color PURPLE;
+    static Color RED;
+    static Color GOLD;
+    static Color FIELD;
+    static Color GRID;
+    static Color FIELD_BORDER;
+    static Color BASE_GLOW;
+    static Color BASE_RING;
+    static Color SELECTION;
+    static Color SHADOW;
+    static Color METAL;
+    static Color ICE;
+    private static Palette current;
     static final Font MONO = new Font(Font.MONOSPACED, Font.BOLD, 16);
 
+    static { select(Palette.MOONLIGHT); }
+
     private Theme() { }
+
+    static Palette current() { return current; }
+
+    static void select(Palette palette) {
+        current = palette;
+        BACKGROUND = Color.decode(palette.colors[0]);
+        PANEL = Color.decode(palette.colors[1]);
+        TEXT = Color.decode(palette.colors[2]);
+        MUTED = Color.decode(palette.colors[3]);
+        GREEN = Color.decode(palette.colors[4]);
+        PURPLE = Color.decode(palette.colors[5]);
+        RED = Color.decode(palette.colors[6]);
+        GOLD = Color.decode(palette.colors[7]);
+        FIELD = blend(BACKGROUND, PANEL, 0.25);
+        GRID = blend(FIELD, MUTED, 0.09);
+        FIELD_BORDER = blend(FIELD, MUTED, 0.25);
+        BASE_GLOW = blend(PANEL, GREEN, 0.13);
+        BASE_RING = blend(PANEL, GREEN, 0.42);
+        SELECTION = blend(PANEL, GREEN, 0.32);
+        SHADOW = blend(BACKGROUND, Color.BLACK, 0.4);
+        METAL = blend(MUTED, TEXT, 0.15);
+        ICE = Color.decode(switch (palette) {
+            case MOONLIGHT -> "#83DFFF";
+            case FOREST -> "#9CDDEE";
+            case ARCADE -> "#A7B7FF";
+        });
+    }
+
+    static Color blend(Color a, Color b, double fraction) {
+        return new Color((int) (a.getRed() * (1 - fraction) + b.getRed() * fraction),
+                (int) (a.getGreen() * (1 - fraction) + b.getGreen() * fraction),
+                (int) (a.getBlue() * (1 - fraction) + b.getBlue() * fraction));
+    }
 
     static JLabel label(String text, int size, Color color) {
         JLabel label = new JLabel(text);

@@ -33,6 +33,7 @@ public final class PlayScreen extends GameScreen {
     private final JLabel hud = Theme.label("", 16, Theme.TEXT);
     private final JLabel feedback = Theme.label("Type a word and press ENTER", 13, Theme.MUTED);
     private final JButton pause = Theme.button("PAUSE [ESC]", Theme.PURPLE);
+    private final JButton slowButton = Theme.button("SLOW [SPACE] 0/1", Theme.ICE);
     private final Arena arena = new Arena();
     private final Timer timer = new Timer(16, e -> tick());
     private final List<Effect> effects = new ArrayList<>();
@@ -66,12 +67,22 @@ public final class PlayScreen extends GameScreen {
         JPanel footer = new JPanel(new BorderLayout(14, 9));
         footer.setBackground(Theme.PANEL);
         footer.setBorder(BorderFactory.createEmptyBorder(12, 22, 14, 22));
-        footer.add(feedback, BorderLayout.NORTH);
+        JPanel status = new JPanel(new BorderLayout(12, 0));
+        status.setOpaque(false);
+        status.add(feedback, BorderLayout.CENTER);
+        slowButton.setFont(new Font(Font.MONOSPACED, Font.BOLD, 13));
+        slowButton.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.ICE),
+                BorderFactory.createEmptyBorder(5, 12, 5, 12)));
+        slowButton.setPreferredSize(new Dimension(230, 30));
+        slowButton.setToolTipText("Defeat a crystal-marked Frost Slime, then press Space. Stores one charge.");
+        slowButton.addActionListener(e -> activateSlow());
+        status.add(slowButton, BorderLayout.EAST);
+        footer.add(status, BorderLayout.NORTH);
         input.setFont(new Font(Font.MONOSPACED, Font.BOLD, 24));
         input.setBackground(Theme.BACKGROUND);
         input.setForeground(Theme.TEXT);
         input.setCaretColor(Theme.GREEN);
-        input.setSelectionColor(new Color(48, 84, 77));
+        input.setSelectionColor(Theme.SELECTION);
         input.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.GREEN, 2),
                 BorderFactory.createEmptyBorder(9, 14, 9, 14)));
         input.getAccessibleContext().setAccessibleName("Enemy word");
@@ -100,12 +111,20 @@ public final class PlayScreen extends GameScreen {
         buttons.add(cast);
         buttons.add(pause);
         footer.add(buttons, BorderLayout.EAST);
-        footer.add(Theme.label("PINK: one hit   |   HELMET: two different words   |   Hits to your tower cost word length in HP", 11, Theme.MUTED), BorderLayout.SOUTH);
+        footer.add(Theme.label("CRYSTAL: gain SLOW | SPACE: use charge | F1 / F2 / F3: themes | ESC: pause", 11, Theme.MUTED), BorderLayout.SOUTH);
         add(footer, BorderLayout.SOUTH);
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "pause");
         getActionMap().put("pause", new AbstractAction() {
             @Override public void actionPerformed(ActionEvent e) { togglePause(); }
         });
+        AbstractAction slowAction = new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) { activateSlow(); }
+        };
+        // A typed-space binding consumes the character instead of inserting a space.
+        input.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(' '), "activate-slow");
+        input.getActionMap().put("activate-slow", slowAction);
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(' '), "activate-slow");
+        getActionMap().put("activate-slow", slowAction);
     }
 
     public void setModel(GameModel value) {
@@ -119,6 +138,10 @@ public final class PlayScreen extends GameScreen {
         updatePauseUi();
         updateHud();
     }
+
+    public GameModel getModel() { return model; }
+    public String getTypedWord() { return input.getText(); }
+    public void setTypedWord(String word) { input.setText(word); }
 
     @Override public void onShow() {
         previousNanos = System.nanoTime();
@@ -146,7 +169,8 @@ public final class PlayScreen extends GameScreen {
             feedbackRemaining -= seconds;
             if (feedbackRemaining <= 0 && model.getElapsed() > 3) {
                 feedback.setForeground(Theme.MUTED);
-                feedback.setText("Choose your priority: distance, word length, and armor.");
+                feedback.setText(model.hasSlowCharge() ? "Slow ready! SPACE buys time to finish typing." :
+                        "Crystal-marked Frost Slimes grant Slow charges.");
             }
         }
         updateHud();
@@ -161,10 +185,12 @@ public final class PlayScreen extends GameScreen {
         GameModel.HitResult hit = model.submit(text);
         input.setText("");
         if (hit.matched()) {
-            Color color = hit.eliminated() ? Theme.GREEN : Theme.GOLD;
-            String message = hit.eliminated() ? "+" + hit.reward() : "ARMOR BROKEN";
+            Color color = hit.frostReward() ? Theme.ICE : hit.eliminated() ? Theme.GREEN : Theme.GOLD;
+            String message = hit.chargeAdded() ? "+20 / SLOW READY" : hit.eliminated() ? "+" + hit.reward() : "ARMOR BROKEN";
             effects.add(new Effect(hit.x(), hit.y(), message, color));
-            showFeedback(hit.eliminated() ? "SPELL HIT  " + message : "ARMOR BROKEN - type the NEW word to finish it!", color);
+            showFeedback(hit.frostReward() ? (hit.chargeAdded() ? "+20 / SLOW READY - press SPACE when needed!" :
+                    "+20 / Slow charge already full (1/1).") : hit.eliminated() ? "SPELL HIT  " + message :
+                    "ARMOR BROKEN - type the NEW word to finish it!", color);
         } else {
             showFeedback("NO MATCH - check the word and try again. No HP penalty.", Theme.RED);
         }
@@ -177,6 +203,19 @@ public final class PlayScreen extends GameScreen {
         feedback.setText(text);
         feedback.setForeground(color);
         feedbackRemaining = 2.3;
+    }
+
+    private void activateSlow() {
+        if (model == null || model.isPaused() || model.isGameOver()) return;
+        if (model.activateSlow()) {
+            showFeedback("SLOW ACTIVE - enemy movement halved for 4 seconds!", Theme.ICE);
+        } else {
+            showFeedback(model.isSlowActive() ? "Slow is already active; effects do not stack." :
+                    "No charge. Defeat a crystal-marked Frost Slime.", Theme.MUTED);
+        }
+        updateHud();
+        arena.repaint();
+        input.requestFocusInWindow();
     }
 
     private void togglePause() {
@@ -192,6 +231,7 @@ public final class PlayScreen extends GameScreen {
     private void updatePauseUi() {
         input.setEnabled(!model.isPaused());
         pause.setText(model.isPaused() ? "RESUME [ESC]" : "PAUSE [ESC]");
+        updateSlowUi();
         if (!model.isPaused()) input.requestFocusInWindow();
         arena.repaint();
     }
@@ -200,6 +240,14 @@ public final class PlayScreen extends GameScreen {
         hud.setText(String.format("SCORE %05d   BEST %05d   %02d:%02d   LV %02d",
                 model.getScore(), Math.max(window.getRecords().getBest(), model.getScore()),
                 (int) model.getElapsed() / 60, (int) model.getElapsed() % 60, model.getLevel()));
+        updateSlowUi();
+    }
+
+    private void updateSlowUi() {
+        slowButton.setEnabled(!model.isPaused() && !model.isGameOver() && model.hasSlowCharge() && !model.isSlowActive());
+        slowButton.setText(model.isSlowActive() ? String.format(Locale.ROOT, "SLOW %.1fs | NEXT %d/1",
+                model.getSlowRemaining(), model.hasSlowCharge() ? 1 : 0) :
+                model.hasSlowCharge() ? "SLOW [SPACE] READY 1/1" : "SLOW [SPACE] 0/1");
     }
 
     /** Scaled, letterboxed world; resizing never changes game coordinates or speed. */
@@ -227,14 +275,17 @@ public final class PlayScreen extends GameScreen {
                 g.drawLine((int) GameModel.BASE_X, (int) GameModel.BASE_Y, (int) effect.x, (int) effect.y);
                 g.drawOval((int) effect.x - 24, (int) effect.y - 24, 48, 48);
                 g.setFont(Theme.MONO);
-                g.drawString(effect.text, (int) effect.x - 30, (int) (effect.y - 35 - (0.48 - effect.life) * 50));
+                int effectX = Math.max(24, Math.min(GameModel.WIDTH - g.getFontMetrics().stringWidth(effect.text) - 24,
+                        (int) effect.x - 30));
+                int effectY = Math.max(100, (int) (effect.y - 35 - (0.48 - effect.life) * 50));
+                g.drawString(effect.text, effectX, effectY);
             }
             if (damageFlash > 0) {
-                g.setColor(new Color(255, 80, 100, (int) (damageFlash * 130)));
+                g.setColor(new Color(Theme.RED.getRed(), Theme.RED.getGreen(), Theme.RED.getBlue(), (int) (damageFlash * 130)));
                 g.fillRect(0, 0, GameModel.WIDTH, GameModel.HEIGHT);
             }
             if (model.isPaused()) {
-                g.setColor(new Color(7, 11, 22, 225));
+                g.setColor(new Color(Theme.BACKGROUND.getRed(), Theme.BACKGROUND.getGreen(), Theme.BACKGROUND.getBlue(), 235));
                 g.fillRect(0, 0, GameModel.WIDTH, GameModel.HEIGHT);
                 centered(g, "PAUSED", 52, 245, Theme.PURPLE);
                 centered(g, "Press ESC or RESUME to continue", 18, 292, Theme.TEXT);
@@ -244,20 +295,27 @@ public final class PlayScreen extends GameScreen {
         }
 
         private void drawField(Graphics2D g) {
-            g.setColor(new Color(17, 25, 40));
+            g.setColor(Theme.FIELD);
             g.fillRect(0, 0, GameModel.WIDTH, GameModel.HEIGHT);
-            g.setColor(new Color(23, 34, 51));
+            g.setColor(Theme.GRID);
             for (int x = 0; x < GameModel.WIDTH; x += 28) g.drawLine(x, 0, x, GameModel.HEIGHT);
             for (int y = 0; y < GameModel.HEIGHT; y += 28) g.drawLine(0, y, GameModel.WIDTH, y);
-            g.setColor(new Color(38, 51, 68));
+            g.setColor(Theme.FIELD_BORDER);
             g.drawRect(14, 14, GameModel.WIDTH - 29, GameModel.HEIGHT - 29);
+            if (model.isSlowActive()) {
+                g.setColor(Theme.ICE);
+                g.setStroke(new BasicStroke(3));
+                g.drawRect(16, 16, GameModel.WIDTH - 33, GameModel.HEIGHT - 33);
+                g.setStroke(new BasicStroke(1));
+                centered(g, String.format(Locale.ROOT, "SLOW ACTIVE  %.1fs", model.getSlowRemaining()), 15, 36, Theme.ICE);
+            }
             g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
             g.setColor(Theme.MUTED);
             g.drawString("PERIMETER / HOSTILES " + model.getEnemies().size(), 30, 36);
             String hp = "TOWER " + model.getBase().getHealth() + "/100";
             g.setColor(Theme.TEXT);
             g.drawString(hp, 860, 35);
-            g.setColor(new Color(44, 52, 69));
+            g.setColor(Theme.FIELD_BORDER);
             g.fillRect(860, 43, 200, 9);
             g.setColor(model.getBase().getHealth() > 30 ? Theme.GREEN : Theme.RED);
             g.fillRect(860, 43, model.getBase().getHealth() * 2, 9);
@@ -266,9 +324,9 @@ public final class PlayScreen extends GameScreen {
         private void drawBase(Graphics2D g) {
             int cx = (int) GameModel.BASE_X;
             int cy = (int) GameModel.BASE_Y;
-            g.setColor(new Color(26, 48, 54));
+            g.setColor(Theme.BASE_GLOW);
             g.fillOval(cx - 72, cy - 50, 144, 105);
-            g.setColor(new Color(56, 104, 94));
+            g.setColor(model.isSlowActive() ? Theme.ICE : Theme.BASE_RING);
             g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{6, 9}, 0));
             g.drawOval(cx - 72, cy - 64, 144, 128);
             g.setStroke(new BasicStroke(1));
@@ -289,14 +347,21 @@ public final class PlayScreen extends GameScreen {
                 int x = (int) enemy.getX();
                 int y = (int) enemy.getY();
                 boolean elite = enemy.getKind().equals("ARMORED");
-                PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite);
+                boolean frost = enemy.dropsSlowCharge();
+                PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite, frost);
+                if (frost) {
+                    g.setColor(Theme.ICE);
+                    g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 10));
+                    g.drawString("SLOW", x - 12, y + 36);
+                    g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 17));
+                }
                 if (Math.hypot(x - GameModel.BASE_X, y - GameModel.BASE_Y) < 150) {
                     g.setColor(Theme.RED);
                     g.drawLine(x - 14, y + 27, x + 14, y + 27);
                 }
                 int width = metrics.stringWidth(enemy.getWord()) + 18;
                 java.awt.Rectangle label = new java.awt.Rectangle(Math.max(16, Math.min(GameModel.WIDTH - width - 16, x - width / 2)),
-                        Math.max(54, y - 48), width, 27);
+                        y < 110 ? y + 38 : y - 48, width, 27);
                 // Move overlapping labels upward, and draw a connector to their enemy.
                 for (int attempt = 0; attempt < 7; attempt++) {
                     boolean overlaps = false;
@@ -306,8 +371,8 @@ public final class PlayScreen extends GameScreen {
                     label.y = Math.min(GameModel.HEIGHT - 32, label.y);
                 }
                 labels.add(label);
-                Color accent = enemy.hasArmor() ? Theme.GOLD : elite ? Theme.PURPLE : Theme.RED;
-                g.setColor(new Color(47, 58, 78));
+                Color accent = frost ? Theme.ICE : enemy.hasArmor() ? Theme.GOLD : elite ? Theme.PURPLE : Theme.RED;
+                g.setColor(Theme.FIELD_BORDER);
                 g.drawLine(label.x + width / 2, label.y + 27, x, y - 12);
                 g.setColor(Theme.BACKGROUND);
                 g.fillRect(label.x, label.y, width, 27);

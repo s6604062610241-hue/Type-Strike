@@ -9,3 +9,5 @@ $testSources = @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'tests') -R
 if ($LASTEXITCODE -ne 0) { throw 'Test compilation failed.' }
 & (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.GameRulesTest
 if ($LASTEXITCODE -ne 0) { throw 'Game tests failed.' }
+& (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.SlowPowerUpTest
+if ($LASTEXITCODE -ne 0) { throw 'Slow power-up tests failed.' }
