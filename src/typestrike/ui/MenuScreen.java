@@ -1,88 +1,194 @@
 package typestrike.ui;
 
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
+/** Main menu follows the owner's sketch: brand, actions, sprites, two lower information cards. */
 public final class MenuScreen extends GameScreen {
-    private final JLabel records = Theme.label("", 16, Theme.GOLD);
-    private final JLabel warning = Theme.label("", 11, Theme.RED);
+    private final JLabel[] scores = new JLabel[3];
+    private final JLabel warning = Theme.label("", 10, Theme.RED);
 
     public MenuScreen(GameWindow window) {
         super(window);
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createEmptyBorder(24, 25, 24, 25));
-        add(Box.createVerticalGlue());
-        add(Theme.label("T Y P E   /   D E F E N D   /   S U R V I V E", 13, Theme.GREEN));
-        add(Box.createVerticalStrut(16));
-        add(Theme.label("TYPE STRIKE", 60, Theme.TEXT));
-        add(Box.createVerticalStrut(8));
-        add(Theme.label("Defend the last spell.", 19, Theme.PURPLE));
-        add(Box.createVerticalStrut(12));
+        setLayout(new BorderLayout(0, 22));
+        setBorder(BorderFactory.createEmptyBorder(34, 28, 28, 28));
+        JPanel branding = column();
+        JLabel logo = Theme.label("TYPE STRIKE", 58, Theme.TEXT);
+        logo.setName("menu-logo");
+        branding.add(logo);
+        branding.add(Box.createVerticalStrut(12));
+        branding.add(Theme.label("TYPE / DEFEND / SURVIVE", 14, Theme.GREEN));
+        add(branding, BorderLayout.NORTH);
+
+        JPanel body = new JPanel(new GridBagLayout());
+        body.setOpaque(false);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 0;
+        c.weighty = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.SOUTH;
+        c.insets = new Insets(0, 0, 0, 18);
+        c.gridx = 0; c.weightx = 0.3;
+        body.add(leaderboard(), c);
+
+        JPanel actions = column();
+        actions.setName("menu-actions");
+        actions.add(Box.createVerticalGlue());
+        JButton start = Theme.button("START SURVIVAL  >", Theme.GREEN);
+        start.setMaximumSize(new Dimension(310, 52));
+        start.setPreferredSize(new Dimension(270, 52));
+        start.addActionListener(e -> window.startGame());
+        actions.add(start);
+        actions.add(Box.createVerticalStrut(12));
+        JButton quit = Theme.button("QUIT", Theme.MUTED);
+        quit.setMaximumSize(new Dimension(310, 46));
+        quit.setPreferredSize(new Dimension(270, 46));
+        quit.addActionListener(e -> window.dispose());
+        actions.add(quit);
+        actions.add(Box.createVerticalStrut(38));
         JPanel sprites = new JPanel() {
             @Override protected void paintComponent(Graphics graphics) {
                 super.paintComponent(graphics);
                 Graphics2D g = (Graphics2D) graphics.create();
-                PixelArt.wizard(g, getWidth() / 2 - 32, 8, 4);
-                PixelArt.enemy(g, getWidth() / 2 - 175, 16, 3, false, false);
-                PixelArt.enemy(g, getWidth() / 2 - 265, 16, 3, false, false, false, true, false);
-                PixelArt.enemy(g, getWidth() / 2 - 355, 16, 3, false, false, false, false, true);
-                PixelArt.enemy(g, getWidth() / 2 + 130, 16, 3, true, true);
-                PixelArt.enemy(g, getWidth() / 2 + 220, 16, 3, false, false, true);
+                int[] positions = {0, 1, 2, 3, 4, 5};
+                int gap = Math.min(54, (getWidth() - 40) / 5);
+                int first = (getWidth() - gap * 5 - 40) / 2;
+                for (int index : positions) {
+                    int x = first + index * gap;
+                    if (index == 2) PixelArt.wizard(g, x, 5, 3);
+                    else PixelArt.enemy(g, x, 16, 2, index == 3, index == 3,
+                            index == 4, index == 1, index == 5);
+                }
                 g.dispose();
             }
         };
+        sprites.setName("menu-sprites");
         sprites.setOpaque(false);
-        sprites.setPreferredSize(new Dimension(440, 82));
-        sprites.setMinimumSize(new Dimension(440, 82));
-        sprites.setMaximumSize(new Dimension(Integer.MAX_VALUE, 82));
-        add(sprites);
-        add(Theme.label("Your tower stands at the center. Every word is a spell.", 15, Theme.MUTED));
-        add(Box.createVerticalStrut(9));
-        add(Theme.label("Type an enemy's word, then press ENTER to strike.", 15, Theme.TEXT));
-        add(Box.createVerticalStrut(16));
-        JButton start = Theme.button("START SURVIVAL  >", Theme.GREEN);
-        start.addActionListener(e -> window.startGame());
-        start.setMaximumSize(new Dimension(310, 52));
-        add(start);
-        add(Box.createVerticalStrut(12));
-        JButton quit = Theme.button("QUIT", Theme.MUTED);
-        quit.addActionListener(e -> window.dispose());
-        quit.setMaximumSize(new Dimension(310, 46));
-        add(quit);
-        add(Box.createVerticalStrut(16));
-        add(records);
-        add(Box.createVerticalStrut(12));
-        add(Theme.label("NORMAL +10   |   ARMORED: 2 words / +25   |   FROST: 1 word / +20", 12, Theme.MUTED));
-        add(Box.createVerticalStrut(8));
-        add(Theme.label("BLAST +15: defeats nearby enemies / breaks armor | HEALER +20: restores nearby armor", 11, Theme.MUTED));
-        add(Box.createVerticalStrut(8));
-        add(Theme.label("ESC: pause / resume    |    Pause menu: main menu or quit", 12, Theme.MUTED));
-        add(Box.createVerticalStrut(12));
-        add(warning);
-        add(Box.createVerticalGlue());
-        add(Theme.label("CRYSTAL FROST SLIME: grants SLOW  |  SPACE: 50% enemy speed for 5s  |  Store 3 charges", 11, Theme.ICE));
+        sprites.setPreferredSize(new Dimension(320, 100));
+        sprites.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        actions.add(sprites);
+        actions.add(Box.createVerticalGlue());
+        c.gridx = 1; c.weightx = 0.4;
+        c.anchor = GridBagConstraints.CENTER;
+        c.fill = GridBagConstraints.BOTH;
+        body.add(actions, c);
+
+        c.gridx = 2; c.weightx = 0.3;
+        c.insets = new Insets(0, 0, 0, 0);
+        c.anchor = GridBagConstraints.SOUTH;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        body.add(instructions(), c);
+        add(body, BorderLayout.CENTER);
+    }
+
+    private static JPanel column() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        return panel;
+    }
+
+    private static JPanel card(String name, int width) {
+        JPanel card = column();
+        card.setName(name);
+        card.setOpaque(true);
+        card.setBackground(Theme.PANEL);
+        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.FIELD_BORDER),
+                BorderFactory.createEmptyBorder(18, 16, 18, 16)));
+        card.setPreferredSize(new Dimension(width, name.equals("leaderboard") ? 242 : 328));
+        return card;
+    }
+
+    private JPanel leaderboard() {
+        JPanel card = card("leaderboard", 260);
+        card.add(Theme.label("LOCAL TOP 3", 16, Theme.GOLD));
+        card.add(Box.createVerticalStrut(18));
+        Color[] colors = {Theme.GOLD, Theme.METAL, new Color(199, 141, 106)};
+        for (int i = 0; i < scores.length; i++) {
+            scores[i] = Theme.label("---", 18, Theme.TEXT);
+            scores[i].setIcon(new MedalIcon(i + 1, colors[i]));
+            scores[i].setIconTextGap(16);
+            scores[i].setAlignmentX(0f);
+            card.add(scores[i]);
+            card.add(Box.createVerticalStrut(12));
+        }
+        card.add(Box.createVerticalGlue());
+        warning.setAlignmentX(0f);
+        card.add(warning);
+        return card;
+    }
+
+    private JPanel instructions() {
+        JPanel card = card("how-to-play", 260);
+        card.add(Theme.label("HOW TO PLAY", 16, Theme.GREEN));
+        card.add(Box.createVerticalStrut(12));
+        card.add(copy("Type a word + ENTER to strike.\nDefend the tower at the center.", Theme.TEXT, 2));
+        card.add(Box.createVerticalStrut(12));
+        card.add(copy("NORMAL   One word to defeat.\nARMORED  Two words: break + finish.\nFROST    Drops one Slow charge.\nBLAST    Hits nearby enemies.\nHEALER   Restores broken armor.", Theme.MUTED, 6));
+        card.add(Box.createVerticalStrut(10));
+        card.add(copy("SPACE: 50% movement speed, 5s.\nStore up to 3 charges. ESC: pause.", Theme.ICE, 3));
+        return card;
+    }
+
+    private static JTextArea copy(String text, Color color, int rows) {
+        JTextArea area = new JTextArea(text, rows, 1);
+        area.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        area.setForeground(color);
+        area.setOpaque(false);
+        area.setEditable(false);
+        area.setFocusable(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setAlignmentX(0.5f);
+        area.setBorder(null);
+        return area;
+    }
+
+    private record MedalIcon(int rank, Color color) implements Icon {
+        public int getIconWidth() { return 30; }
+        public int getIconHeight() { return 32; }
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.translate(x, y);
+            g.setColor(Theme.PURPLE);
+            g.fillPolygon(new int[]{6, 14, 11, 2}, new int[]{16, 20, 32, 27}, 4);
+            g.fillPolygon(new int[]{16, 24, 28, 19}, new int[]{20, 16, 27, 32}, 4);
+            g.setColor(color); g.fillOval(3, 0, 24, 24);
+            g.setColor(Theme.SHADOW); g.setStroke(new BasicStroke(1)); g.drawOval(6, 3, 18, 18);
+            g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 14));
+            g.drawString(String.valueOf(rank), 11, 17);
+            g.dispose();
+        }
     }
 
     @Override public void onShow() {
-        var scores = window.getRecords().getScores();
-        records.setText("LOCAL RECORDS   " + (scores.isEmpty() ? "--- / --- / ---" :
-                String.join("  /  ", scores.stream().map(String::valueOf).toList())));
-        warning.setText(window.getRecords().getWarning());
+        var best = window.getRecords().getScores();
+        for (int i = 0; i < scores.length; i++) scores[i].setText(i < best.size() ? String.format("%05d", best.get(i)) : "---");
+        warning.setText(window.getRecords().getWarning().isBlank() ? "" : "Score save unavailable");
+        warning.setToolTipText(window.getRecords().getWarning());
     }
 
     @Override protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
-        Graphics2D g = (Graphics2D) graphics.create();
-        g.setColor(Theme.GRID);
-        for (int x = 0; x < getWidth(); x += 32) g.drawLine(x, 0, x, getHeight());
-        for (int y = 0; y < getHeight(); y += 32) g.drawLine(0, y, getWidth(), y);
-        g.dispose();
+        graphics.setColor(Theme.GRID);
+        for (int x = 0; x < getWidth(); x += 32) graphics.drawLine(x, 0, x, getHeight());
+        for (int y = 0; y < getHeight(); y += 32) graphics.drawLine(0, y, getWidth(), y);
     }
 }

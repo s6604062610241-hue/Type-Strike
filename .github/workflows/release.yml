@@ -51,11 +51,17 @@ jobs:
               [`TypeStrike-${tag}-Windows.zip`, `release/TypeStrike-${tag}-Windows.zip`, 'application/zip'],
               [`TypeStrike-${tag}-Source.zip`, `release/TypeStrike-${tag}-Source.zip`, 'application/zip']
             ];
+            for (const name of ['menu', 'gameplay', 'pause']) {
+              const path = `screenshots/${name}.png`;
+              if (fs.existsSync(path)) files.push([`${name}.png`, path, 'image/png']);
+            }
             const sums = files.map(([name,path]) => `${crypto.createHash('sha256').update(fs.readFileSync(path)).digest('hex')}  ${name}\n`).join('');
             fs.writeFileSync('release/SHA256SUMS.txt', sums);
             files.push(['SHA256SUMS.txt', 'release/SHA256SUMS.txt', 'text/plain']);
             const body = version === '1.2.0'
               ? 'Adds Blast Slime (area damage and chain reactions) and Healer Slime (one nearby armor restoration every 8 seconds, with a warning). Keeps the existing pace, 5-second Slow, 3 charges and pause menu.\n\nRequires Java 21+. Extract the Windows ZIP and open Play.cmd. Source ZIP contains game files only. Academic documents and the separate family game remain local.\n\nValidation: game rules, Slow, difficulty balance and special-enemy integration tests pass on Java 21.'
+              : version === '1.3.0'
+              ? 'Redesigns the main menu around the owner\'s sketch: centered title/actions, sprites below, local top-three scores with medal icons at bottom left and a compact how-to-play card at bottom right. Moves HP to the upper left and removes the enemy counter and repeated instructions. Adds looping menu/battle music by HydroGene (CC0) and a working Mute/Unmute Music button in Pause.\n\nGameplay rules remain the same as v1.2.0. The existing placeholder sprites are retained for the later art stage. Music stops while paused and the mute choice persists across screens/runs until the app closes.\n\nRequires Java 21+. Extract the Windows ZIP and open Play.cmd. Includes bundled music and credits. Source, screenshots, playable JAR and SHA256 checksums attached. Gameplay, balance, special-enemy and audio tests pass on Java 21.'
               : 'Java 21 typing defense game. Extract the Windows ZIP and open Play.cmd. Source, playable JAR and SHA256 checksums attached. Game rules tested before packaging.';
             const release = await github.rest.repos.createRelease({...repo, tag_name: tag, target_commitish: context.sha,
               name: `Type Strike ${tag}`, body, draft: true});

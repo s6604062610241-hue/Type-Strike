@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 from zipfile import ZipFile, ZIP_DEFLATED
 import json
 
-SOURCE_DIRS = ('src', 'resources', 'tests', '.vscode', '.github')
+SOURCE_DIRS = ('src', 'resources', 'tests', '.vscode', '.github', 'screenshots')
 SOURCE_FILES = (
     '.gitignore', 'VERSION', 'README.md', 'Build.cmd', 'Play.cmd',
     'build.ps1', 'run.ps1', 'test.ps1', 'tools/package_release.py', 'tools/publication_files.py'
@@ -111,7 +111,7 @@ def write_manifest(root):
     manifest = []
     for name, path in sorted(paths.items()):
         raw = path.read_bytes()
-        text = path.suffix.lower() not in ('.jar', '.zip', '.png', '.pdf')
+        text = path.suffix.lower() not in ('.jar', '.zip', '.png', '.pdf', '.wav', '.ogg', '.mp3')
         canonical = path.read_text(encoding='utf-8').encode() if text else raw
         manifest.append({'path': name, 'source': path.relative_to(root).as_posix(), 'size': len(raw), 'text': text,
                          'sha': sha1(('blob ' + str(len(canonical)) + '\0').encode() + canonical).hexdigest(),

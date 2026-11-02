@@ -37,6 +37,10 @@ with ZipFile(release / (prefix + '-Windows.zip'), 'w', ZIP_DEFLATED) as archive:
         'Space: use Slow for 50% enemy movement for 5 seconds. Stores 3 charges.\n'
         'Slow affects movement only; healing/spawn clocks keep running. Pause stops all clocks.\n'
         'Escape: pause menu with Resume, Main Menu and Quit.\n'
+        'Pause menu: Mute/Unmute Music. Choice stays across screens/runs until app closes.\n'
+        'Music pauses with the game; menu and battle tracks are bundled for offline play.\n'
+        'Music by HydroGene, CC0: https://hydrogene.itch.io/high-quality-16-bit-music\n'
+        'See audio/CREDITS.txt inside the JAR or resources/audio/CREDITS.txt in the source.\n'
         'Scores are saved in %USERPROFILE%\\.type-strike\\scores.txt\n'
         'This archive does not include a Java runtime.\n')
 for path in release.glob(prefix + '*.zip'):

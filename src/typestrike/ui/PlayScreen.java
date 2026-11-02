@@ -24,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -37,6 +38,8 @@ import typestrike.model.HealerEnemy;
 public final class PlayScreen extends GameScreen {
     private final JTextField input = new JTextField();
     private final JLabel hud = Theme.label("", 16, Theme.TEXT);
+    private final JProgressBar health = new JProgressBar(0, 100);
+    private final JButton musicButton = Theme.button("MUTE MUSIC", Theme.ICE);
     private final JLabel feedback = Theme.label("Type a word and press ENTER", 13, Theme.MUTED);
     private final JButton pause = Theme.button("PAUSE [ESC]", Theme.PURPLE);
     private final JButton slowButton = Theme.button("SLOW [SPACE] 0/3", Theme.ICE);
@@ -66,7 +69,24 @@ public final class PlayScreen extends GameScreen {
         JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setBackground(Theme.PANEL);
         header.setBorder(BorderFactory.createEmptyBorder(15, 22, 15, 22));
-        header.add(Theme.label("TYPE STRIKE", 21, Theme.GREEN), BorderLayout.WEST);
+        JPanel identity = new JPanel(new BorderLayout(0, 6));
+        identity.setOpaque(false);
+        identity.add(Theme.label("TYPE STRIKE", 18, Theme.GREEN), BorderLayout.NORTH);
+        health.setName("tower-health");
+        health.setStringPainted(true);
+        health.setUI(new javax.swing.plaf.basic.BasicProgressBarUI() {
+            @Override protected Color getSelectionForeground() { return Theme.BACKGROUND; }
+            @Override protected Color getSelectionBackground() { return Theme.TEXT; }
+        });
+        health.getAccessibleContext().setAccessibleName("Tower health");
+        health.setFont(new Font(Font.MONOSPACED, Font.BOLD, 11));
+        health.setBackground(Theme.FIELD_BORDER);
+        health.setForeground(Theme.GREEN);
+        health.setBorderPainted(false);
+        health.setPreferredSize(new Dimension(200, 18));
+        identity.add(health, BorderLayout.SOUTH);
+        header.add(identity, BorderLayout.WEST);
+        hud.setFont(new Font(Font.MONOSPACED, Font.BOLD, 14));
         header.add(hud, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
         configurePauseMenu();
@@ -121,7 +141,6 @@ public final class PlayScreen extends GameScreen {
         buttons.add(cast);
         buttons.add(pause);
         footer.add(buttons, BorderLayout.EAST);
-        footer.add(Theme.label("CRYSTAL: gain SLOW | SPACE: 50% speed for 5s | STORE: 3 charges | ESC: pause menu", 11, Theme.MUTED), BorderLayout.SOUTH);
         add(footer, BorderLayout.SOUTH);
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "pause");
         getActionMap().put("pause", new AbstractAction() {
@@ -142,7 +161,7 @@ public final class PlayScreen extends GameScreen {
         pauseMenu.setBackground(Theme.PANEL);
         pauseMenu.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.PURPLE),
                 BorderFactory.createEmptyBorder(16, 22, 16, 22)));
-        pauseMenu.setPreferredSize(new Dimension(390, 375));
+        pauseMenu.setPreferredSize(new Dimension(390, 406));
         pauseMenu.add(Box.createVerticalGlue());
         pauseMenu.add(Theme.label("PAUSED", 32, Theme.PURPLE));
         pauseMenu.add(Box.createVerticalStrut(8));
@@ -157,6 +176,13 @@ public final class PlayScreen extends GameScreen {
         menu.setMaximumSize(new Dimension(285, 48));
         menu.addActionListener(e -> window.showMenu());
         pauseMenu.add(menu);
+        pauseMenu.add(Box.createVerticalStrut(10));
+        musicButton.setMaximumSize(new Dimension(285, 48));
+        musicButton.addActionListener(e -> {
+            window.getMusic().toggleMuted();
+            updateMusicUi();
+        });
+        pauseMenu.add(musicButton);
         pauseMenu.add(Box.createVerticalStrut(10));
         JButton quit = Theme.button("QUIT GAME", Theme.RED);
         quit.setMaximumSize(new Dimension(285, 48));
@@ -175,7 +201,7 @@ public final class PlayScreen extends GameScreen {
         damageFlash = 0;
         feedbackRemaining = 0;
         feedback.setForeground(Theme.MUTED);
-        feedback.setText("Defend the center. Type an enemy's word, then press ENTER.");
+        feedback.setText("Type a word and press ENTER.");
         updatePauseUi();
         updateHud();
     }
@@ -210,8 +236,7 @@ public final class PlayScreen extends GameScreen {
             feedbackRemaining -= seconds;
             if (feedbackRemaining <= 0 && model.getElapsed() > 3) {
                 feedback.setForeground(Theme.MUTED);
-                feedback.setText(model.hasSlowCharge() ? "Slow ready! SPACE buys time to finish typing." :
-                        "Crystal-marked Frost Slimes grant Slow charges.");
+                feedback.setText(" ");
             }
         }
         updateHud();
@@ -270,6 +295,8 @@ public final class PlayScreen extends GameScreen {
     }
 
     private void updatePauseUi() {
+        window.getMusic().setPaused(model.isPaused());
+        updateMusicUi();
         input.setEnabled(!model.isPaused());
         pause.setText(model.isPaused() ? "RESUME [ESC]" : "PAUSE [ESC]");
         pauseMenu.setVisible(model.isPaused());
@@ -279,7 +306,16 @@ public final class PlayScreen extends GameScreen {
         arena.repaint();
     }
 
+    private void updateMusicUi() {
+        musicButton.setText(window.getMusic().isMuted() ? "UNMUTE MUSIC" : "MUTE MUSIC");
+        musicButton.setToolTipText(window.getMusic().getWarning().isEmpty() ?
+                "Music preference stays when returning to the menu or starting another run." : window.getMusic().getWarning());
+    }
+
     private void updateHud() {
+        health.setValue(model.getBase().getHealth());
+        health.setString("HP " + model.getBase().getHealth() + " / 100");
+        health.setForeground(model.getBase().getHealth() > 30 ? Theme.GREEN : Theme.RED);
         hud.setText(String.format("SCORE %05d   BEST %05d   %02d:%02d   LV %02d",
                 model.getScore(), Math.max(window.getRecords().getBest(), model.getScore()),
                 (int) model.getElapsed() / 60, (int) model.getElapsed() % 60, model.getLevel()));
@@ -351,16 +387,6 @@ public final class PlayScreen extends GameScreen {
                 g.setStroke(new BasicStroke(1));
                 centered(g, String.format(Locale.ROOT, "SLOW ACTIVE  %.1fs", model.getSlowRemaining()), 15, 36, Theme.ICE);
             }
-            g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
-            g.setColor(Theme.MUTED);
-            g.drawString("PERIMETER / HOSTILES " + model.getEnemies().size(), 30, 36);
-            String hp = "TOWER " + model.getBase().getHealth() + "/100";
-            g.setColor(Theme.TEXT);
-            g.drawString(hp, 860, 35);
-            g.setColor(Theme.FIELD_BORDER);
-            g.fillRect(860, 43, 200, 9);
-            g.setColor(model.getBase().getHealth() > 30 ? Theme.GREEN : Theme.RED);
-            g.fillRect(860, 43, model.getBase().getHealth() * 2, 9);
         }
 
         private void drawBase(Graphics2D g) {
@@ -373,9 +399,6 @@ public final class PlayScreen extends GameScreen {
             g.drawOval(cx - 72, cy - 64, 144, 128);
             g.setStroke(new BasicStroke(1));
             PixelArt.wizard(g, cx - 32, cy - 38, 4);
-            g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 11));
-            g.setColor(Theme.GREEN);
-            g.drawString("THE LAST TOWER", cx - 46, cy + 83);
         }
 
         private void drawEnemies(Graphics2D g) {

@@ -1,0 +1,11 @@
+Music by HydroGene — High Quality 16-bit RPG Music
+Source: https://hydrogene.itch.io/high-quality-16-bit-music
+Asset license stated by the creator: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+menu.wav: 18. The Old Magician
+battle.wav: 01. Battle Theme I (loop)
+
+Adaptation for Type Strike: converted the original stereo 44.1 kHz PCM WAV
+to mono 22.05 kHz, 16-bit PCM WAV. No composition changes.
+Original files and creator readme retained in the owner's local asset staging area.

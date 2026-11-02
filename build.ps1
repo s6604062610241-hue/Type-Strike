@@ -27,7 +27,9 @@ New-Item -ItemType Directory -Force -Path $classes, $dist | Out-Null
 $sources = @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src') -Recurse -Filter '*.java' | ForEach-Object { $_.FullName })
 & (Join-Path $jdk 'bin\javac.exe') --release 21 -encoding UTF-8 -Xlint:all,-serial -d $classes @sources
 if ($LASTEXITCODE -ne 0) { throw 'Java compilation failed.' }
-Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'resources\words.txt') -Destination $classes -Force
+Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'resources') | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $classes -Recurse -Force
+}
 & (Join-Path $jdk 'bin\jar.exe') "-J-Djava.io.tmpdir=$dist" --create --file (Join-Path $dist 'TypeStrike.jar') --main-class typestrike.Main -C $classes .
 if ($LASTEXITCODE -ne 0) { throw 'JAR packaging failed.' }
 Write-Host 'Build complete: dist\TypeStrike.jar' -ForegroundColor Green
