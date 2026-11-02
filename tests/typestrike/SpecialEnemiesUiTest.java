@@ -41,6 +41,16 @@ public final class SpecialEnemiesUiTest {
                         new NormalEnemy(2, "cat", 820, 150), new ArmoredEnemy(3, "armor", 750, 240),
                         new FrostEnemy(4, "ice", 200, 130), healer, exposed);
                 play.setModel(model);
+                var arenaField = PlayScreen.class.getDeclaredField("arena"); arenaField.setAccessible(true);
+                Object arena = arenaField.get(play);
+                var placement = arena.getClass().getDeclaredMethod("placeLabel", java.awt.Rectangle.class, java.util.List.class);
+                placement.setAccessible(true);
+                var occupied = java.util.List.of(new java.awt.Rectangle(690,112,60,82),
+                        new java.awt.Rectangle(728,81,80,27), new java.awt.Rectangle(720,198,40,14));
+                var label = (java.awt.Rectangle) placement.invoke(arena, new java.awt.Rectangle(702,78,70,27), occupied);
+                if (occupied.stream().anyMatch(label::intersects) || label.y < 18 || label.y + label.height > GameModel.HEIGHT) {
+                    throw new AssertionError("Crowded labels must not bounce back onto larger sprites/status text");
+                }
                 UiSmokeTest.capture(window, "v1.2.0-special-enemies");
                 JTextField field = input(play);
                 field.setText("blast"); field.postActionEvent();

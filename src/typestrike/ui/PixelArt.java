@@ -11,14 +11,12 @@ import javax.imageio.ImageIO;
 /** Bundled 0x72 CC0 art. Resource loading and palette variants are cached once. */
 final class PixelArt {
     private static final BufferedImage[] PLAYER = frames("wizzard_m_idle_anim_f");
-    private static final BufferedImage[] SMALL = frames("tiny_slug_anim_f");
-    private static final BufferedImage[] LARGE = frames("slug_anim_f");
     private static final BufferedImage[][] ENEMIES = {
-        SMALL, tint(LARGE, Theme.GOLD), tint(SMALL, Theme.ICE),
-        tint(SMALL, Theme.PURPLE), tint(SMALL, Theme.GREEN)
+        frames("orc_warrior_run_anim_f"), frames("masked_orc_run_anim_f"),
+        frames("ice_zombie_anim_f"), frames("imp_run_anim_f"), frames("orc_shaman_run_anim_f")
     };
     private static final Rectangle[] ENEMY_BOUNDS = {
-        bounds(SMALL), bounds(LARGE), bounds(SMALL), bounds(SMALL), bounds(SMALL)
+        bounds(ENEMIES[0]), bounds(ENEMIES[1]), bounds(ENEMIES[2]), bounds(ENEMIES[3]), bounds(ENEMIES[4])
     };
     private static final BufferedImage[] FLOORS = {
         load("floor_1.png"), load("floor_2.png"), load("floor_3.png"), load("floor_5.png")
@@ -44,25 +42,6 @@ final class PixelArt {
     private static BufferedImage[] frames(String prefix) {
         BufferedImage[] result = new BufferedImage[4];
         for (int i = 0; i < result.length; i++) result[i] = load(prefix + i + ".png");
-        return result;
-    }
-    /** Runtime palette swap preserves original shading, alpha and neutral eye pixels. */
-    private static BufferedImage[] tint(BufferedImage[] original, Color color) {
-        float hue = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null)[0];
-        BufferedImage[] result = new BufferedImage[original.length];
-        for (int i = 0; i < original.length; i++) {
-            BufferedImage source = original[i];
-            BufferedImage image = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            for (int y = 0; y < image.getHeight(); y++) for (int x = 0; x < image.getWidth(); x++) {
-                int pixel = source.getRGB(x, y);
-                float[] hsb = Color.RGBtoHSB((pixel >> 16) & 255, (pixel >> 8) & 255, pixel & 255, null);
-                if ((pixel >>> 24) != 0 && hsb[1] > 0.25f) {
-                    pixel = (pixel & 0xff000000) | (Color.HSBtoRGB(hue, hsb[1] * 0.8f, hsb[2]) & 0xffffff);
-                }
-                image.setRGB(x, y, pixel);
-            }
-            result[i] = image;
-        }
         return result;
     }
     private static int frame(double seconds) { return Math.floorMod((int) Math.floor(seconds * 6), 4); }
@@ -104,7 +83,8 @@ final class PixelArt {
         int kind = healer ? 4 : blast ? 3 : frost ? 2 : elite ? 1 : 0;
         BufferedImage image = ENEMIES[kind][frame(seconds)];
         Rectangle region = ENEMY_BOUNDS[kind];
-        int actual = Math.max(1, Math.min(16 * scale / region.width, 16 * scale / region.height));
+        // Size by visible body height, not transparent canvas. Keep original proportions.
+        int actual = Math.max(1, Math.round(66f * scale / 3 / region.height));
         int left = x + (16 * scale - region.width * actual) / 2;
         int top = y + (16 * scale - region.height * actual) / 2;
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);

@@ -3,8 +3,13 @@ Source: https://0x72.itch.io/dungeontileset-ii
 Asset license stated by the creator: CC0 1.0 Universal
 https://creativecommons.org/publicdomain/zero/1.0/
 
-Original PNG frames are bundled unchanged. Type Strike uses wizzard_m idle frames,
-tiny_slug/slug animation frames, dungeon floor/wall tiles, columns and banners.
-Runtime adaptations: nearest-neighbor scaling, palette variants for enemy kinds,
+Original PNG frames are bundled unchanged. Current roster chosen by the owner:
+Normal: orc_warrior_run_anim_f0..3
+Armored: masked_orc_run_anim_f0..3
+Frost: ice_zombie_anim_f0..3
+Blast: imp_run_anim_f0..3
+Healer: orc_shaman_run_anim_f0..3
+Player: wizzard_m idle frames. Scene: dungeon floor/wall tiles, columns and banners.
+Runtime adaptations: larger nearest-neighbor scaling with original proportions,
 armor/crystal/fuse/healer markers and a dark overlay on tiled backgrounds.
 No extra collision walls or gameplay obstacles are introduced by the artwork.

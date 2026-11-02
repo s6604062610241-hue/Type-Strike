@@ -399,6 +399,13 @@ public final class PlayScreen extends GameScreen {
         private void drawEnemies(Graphics2D g) {
             String typed = input.getText().trim().toLowerCase(Locale.ROOT);
             List<java.awt.Rectangle> labels = new ArrayList<>();
+            g.setFont(Theme.font(12));
+            FontMetrics tagMetrics = g.getFontMetrics();
+            for (Enemy enemy : model.getEnemies()) {
+                EnemyTag tag = enemyTag(enemy, tagMetrics);
+                if (tag != null) labels.add(new java.awt.Rectangle(tag.x(), tag.y() - 12, tag.width(), 14));
+                labels.add(new java.awt.Rectangle((int) enemy.getX() - 30, (int) enemy.getY() - 38, 60, 82));
+            }
             List<Enemy> sorted = model.getEnemies().stream().sorted(Comparator.comparingDouble(
                     e -> Math.hypot(e.getX() - GameModel.BASE_X, e.getY() - GameModel.BASE_Y))).toList();
             g.setFont(Theme.font(20));
@@ -415,25 +422,18 @@ public final class PlayScreen extends GameScreen {
                 if (frost || blast || healer) {
                     g.setColor(healer ? Theme.GREEN : blast ? Theme.PURPLE : Theme.ICE);
                     g.setFont(Theme.font(10));
-                    String tag = healer ? "HEAL" : blast ? "BLAST" : "SLOW";
-                    g.drawString(tag, x - g.getFontMetrics().stringWidth(tag) / 2, y + 36);
+                    EnemyTag tag = enemyTag(enemy, tagMetrics);
+                    g.drawString(tag.text(), tag.x(), tag.y());
                     g.setFont(Theme.font(20));
                 }
                 if (Math.hypot(x - GameModel.BASE_X, y - GameModel.BASE_Y) < 150) {
                     g.setColor(Theme.RED);
-                    g.drawLine(x - 14, y + 27, x + 14, y + 27);
+                    g.drawLine(x - 14, y + 40, x + 14, y + 40);
                 }
                 int width = metrics.stringWidth(enemy.getWord()) + 18;
                 java.awt.Rectangle label = new java.awt.Rectangle(Math.max(16, Math.min(GameModel.WIDTH - width - 16, x - width / 2)),
-                        y < 110 ? y + 38 : y - 48, width, 27);
-                // Move overlapping labels upward, and draw a connector to their enemy.
-                for (int attempt = 0; attempt < 7; attempt++) {
-                    boolean overlaps = false;
-                    for (java.awt.Rectangle other : labels) if (label.intersects(other)) overlaps = true;
-                    if (!overlaps) break;
-                    label.y = label.y > 80 ? label.y - 29 : label.y + 58;
-                    label.y = Math.min(GameModel.HEIGHT - 32, label.y);
-                }
+                        y < 110 ? y + 74 : y - 72, width, 27);
+                label = placeLabel(label, labels);
                 labels.add(label);
                 Color accent = healer ? Theme.GREEN : blast ? Theme.PURPLE : frost ? Theme.ICE : enemy.hasArmor() ? Theme.GOLD : elite ? Theme.PURPLE : Theme.RED;
                 g.setColor(Theme.FIELD_BORDER);
@@ -450,10 +450,46 @@ public final class PlayScreen extends GameScreen {
                 }
                 if (enemy.hasArmor()) {
                     g.setColor(Theme.GOLD);
-                    g.fillRect(x - 8, y + 30, 6, 3);
-                    g.fillRect(x + 2, y + 30, 6, 3);
+                    g.fillRect(x - 8, y + 43, 6, 3);
+                    g.fillRect(x + 2, y + 43, 6, 3);
                 }
             }
+        }
+
+        private record EnemyTag(String text, int x, int y, int width) { }
+
+        private java.awt.Rectangle placeLabel(java.awt.Rectangle desired, List<java.awt.Rectangle> occupied) {
+            java.awt.Rectangle best = desired;
+            int bestDistance = Integer.MAX_VALUE;
+            // Find the closest clear position instead of bouncing between two crowded rows.
+            for (int row = -12; row <= 12; row++) for (int column = -1; column <= 1; column++) {
+                int x = Math.max(16, Math.min(GameModel.WIDTH - desired.width - 16,
+                        desired.x + column * (desired.width + 12)));
+                int y = Math.max(18, Math.min(GameModel.HEIGHT - 32, desired.y + row * 29));
+                int distance = Math.abs(x - desired.x) + 2 * Math.abs(y - desired.y);
+                if (distance >= bestDistance) continue;
+                java.awt.Rectangle candidate = new java.awt.Rectangle(x, y, desired.width, desired.height);
+                boolean overlaps = false;
+                for (java.awt.Rectangle other : occupied) if (candidate.intersects(other)) { overlaps = true; break; }
+                if (!overlaps) { best = candidate; bestDistance = distance; }
+            }
+            return best;
+        }
+
+        private EnemyTag enemyTag(Enemy enemy, FontMetrics metrics) {
+            String text;
+            if (enemy instanceof HealerEnemy healer) {
+                text = healer.isPreparingHeal() && model.getHealTarget(healer) != null ?
+                        String.format(Locale.ROOT, "HEAL %.1fs", healer.getHealRemaining()) : "HEAL";
+            } else if (enemy.getBlastRadius() > 0) text = "BLAST";
+            else if (enemy.dropsSlowCharge()) text = "SLOW";
+            else return null;
+            int width = metrics.stringWidth(text);
+            boolean bottom = enemy.getY() > GameModel.HEIGHT - 75;
+            int x = (int) enemy.getX() + (bottom ? 36 : -width / 2);
+            if (bottom && x + width > GameModel.WIDTH - 16) x = (int) enemy.getX() - 36 - width;
+            x = Math.max(16, Math.min(GameModel.WIDTH - width - 16, x));
+            return new EnemyTag(text, x, (int) enemy.getY() + (bottom ? 10 : 60), width);
         }
 
         private void drawCombat(Graphics2D g) {
@@ -470,9 +506,6 @@ public final class PlayScreen extends GameScreen {
                         g.setColor(Theme.GREEN);
                         g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{5, 5}, 0));
                         g.drawLine((int) healer.getX(), (int) healer.getY(), (int) target.getX(), (int) target.getY());
-                        g.setFont(Theme.font(11));
-                        g.drawString(String.format(Locale.ROOT, "HEAL %.1fs", healer.getHealRemaining()),
-                                (int) healer.getX() - 30, (int) healer.getY() + 50);
                     }
                 }
             }

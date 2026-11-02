@@ -77,8 +77,8 @@ public final class MenuScreen extends GameScreen {
                 int first = (getWidth() - gap * 5 - 48) / 2;
                 for (int index : positions) {
                     int x = first + index * gap;
-                    if (index == 2) PixelArt.wizard(g, x, 5, 3, animationTime);
-                    else PixelArt.enemy(g, x, 16, 3, index == 3, index == 3,
+                    if (index == 2) PixelArt.wizard(g, x, 30, 3, animationTime);
+                    else PixelArt.enemy(g, x, 24, 3, index == 3, index == 3,
                             index == 4, index == 1, index == 5, animationTime + index * 0.1);
                 }
                 g.dispose();
