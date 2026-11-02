@@ -72,22 +72,21 @@ public final class MenuScreen extends GameScreen {
             @Override protected void paintComponent(Graphics graphics) {
                 super.paintComponent(graphics);
                 Graphics2D g = (Graphics2D) graphics.create();
-                int[] positions = {0, 1, 2, 3, 4, 5};
-                int gap = Math.min(54, (getWidth() - 48) / 5);
-                int first = (getWidth() - gap * 5 - 48) / 2;
-                for (int index : positions) {
+                PixelArt.wizard(g, getWidth() / 2 - 32, 10, 4, animationTime);
+                int gap = Math.min(58, (getWidth() - 48) / 4);
+                int first = (getWidth() - gap * 4 - 48) / 2;
+                for (int index = 0; index < 5; index++) {
                     int x = first + index * gap;
-                    if (index == 2) PixelArt.wizard(g, x - 8, 4, 4, animationTime);
-                    else PixelArt.enemy(g, x, 24, 3, index == 3, index == 3,
-                            index == 4, index == 1, index == 5, animationTime + index * 0.1);
+                    PixelArt.enemy(g, x, 108, 3, index == 1, index == 1,
+                            index == 2, index == 3, index == 4, animationTime + index * 0.1);
                 }
                 g.dispose();
             }
         };
         sprites.setName("menu-sprites");
         sprites.setOpaque(false);
-        sprites.setPreferredSize(new Dimension(320, 100));
-        sprites.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        sprites.setPreferredSize(new Dimension(320, 190));
+        sprites.setMaximumSize(new Dimension(Integer.MAX_VALUE, 190));
         actions.add(sprites);
         actions.add(Box.createVerticalGlue());
         c.gridx = 1; c.weightx = 0.4;

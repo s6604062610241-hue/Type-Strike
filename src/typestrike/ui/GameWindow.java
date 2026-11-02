@@ -37,7 +37,7 @@ public final class GameWindow extends JFrame {
         setSize(1140, 820);
         setLocationRelativeTo(null);
         showScreen("menu", menu);
-        setTitle("Type Strike v1.4.3 | Menu Sprite Size");
+        setTitle("Type Strike v1.4.4 | Menu & Volume");
         addWindowFocusListener(new java.awt.event.WindowAdapter() {
             @Override public void windowLostFocus(java.awt.event.WindowEvent e) {
                 if (current == play) play.pauseIfRunning();

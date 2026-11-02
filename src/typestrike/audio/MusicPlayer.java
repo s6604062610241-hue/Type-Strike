@@ -54,7 +54,14 @@ public final class MusicPlayer implements AutoCloseable {
         Clip clip = AudioSystem.getClip();
         try (var stream = new BufferedInputStream(resource);
              var decoded = AudioSystem.getAudioInputStream(stream)) {
-            clip.open(decoded);
+            var format = decoded.getFormat();
+            if (format.getSampleSizeInBits() != 16 || format.isBigEndian()
+                    || !format.getEncoding().equals(javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED)) {
+                throw new IllegalStateException("Expected bundled 16-bit little-endian PCM music");
+            }
+            byte[] samples = decoded.readAllBytes();
+            reduceVolume(samples);
+            clip.open(format, samples, 0, samples.length);
             if (clip.isControlSupported(javax.sound.sampled.FloatControl.Type.MASTER_GAIN)) {
                 var gain = (javax.sound.sampled.FloatControl) clip.getControl(javax.sound.sampled.FloatControl.Type.MASTER_GAIN);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), -15f)));
@@ -67,6 +74,16 @@ public final class MusicPlayer implements AutoCloseable {
             public void stop() { clip.stop(); }
             public void close() { clip.close(); }
         };
+    }
+
+    /** Reduce sample amplitude by 30%, including devices without hardware gain controls. */
+    private static void reduceVolume(byte[] samples) {
+        for (int i = 0; i + 1 < samples.length; i += 2) {
+            short original = (short) ((samples[i] & 255) | (samples[i + 1] << 8));
+            short quieter = (short) Math.round(original * 0.7);
+            samples[i] = (byte) quieter;
+            samples[i + 1] = (byte) (quieter >> 8);
+        }
     }
 
     public synchronized void play(Track value) {
