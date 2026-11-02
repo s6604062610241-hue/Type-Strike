@@ -1,0 +1,10 @@
+Art: 0x72 (Robert) — DungeonTileset II v1.7
+Source: https://0x72.itch.io/dungeontileset-ii
+Asset license stated by the creator: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Original PNG frames are bundled unchanged. Type Strike uses wizzard_m idle frames,
+tiny_slug/slug animation frames, dungeon floor/wall tiles, columns and banners.
+Runtime adaptations: nearest-neighbor scaling, palette variants for enemy kinds,
+armor/crystal/fuse/healer markers and a dark overlay on tiled backgrounds.
+No extra collision walls or gameplay obstacles are introduced by the artwork.

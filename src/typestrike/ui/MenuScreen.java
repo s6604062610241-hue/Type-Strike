@@ -24,6 +24,11 @@ import javax.swing.JTextArea;
 public final class MenuScreen extends GameScreen {
     private final JLabel[] scores = new JLabel[3];
     private final JLabel warning = Theme.label("", 10, Theme.RED);
+    private double animationTime;
+    private final javax.swing.Timer animation = new javax.swing.Timer(120, e -> {
+        animationTime += 0.12;
+        repaint();
+    });
 
     public MenuScreen(GameWindow window) {
         super(window);
@@ -68,13 +73,13 @@ public final class MenuScreen extends GameScreen {
                 super.paintComponent(graphics);
                 Graphics2D g = (Graphics2D) graphics.create();
                 int[] positions = {0, 1, 2, 3, 4, 5};
-                int gap = Math.min(54, (getWidth() - 40) / 5);
-                int first = (getWidth() - gap * 5 - 40) / 2;
+                int gap = Math.min(54, (getWidth() - 48) / 5);
+                int first = (getWidth() - gap * 5 - 48) / 2;
                 for (int index : positions) {
                     int x = first + index * gap;
-                    if (index == 2) PixelArt.wizard(g, x, 5, 3);
-                    else PixelArt.enemy(g, x, 16, 2, index == 3, index == 3,
-                            index == 4, index == 1, index == 5);
+                    if (index == 2) PixelArt.wizard(g, x, 5, 3, animationTime);
+                    else PixelArt.enemy(g, x, 16, 3, index == 3, index == 3,
+                            index == 4, index == 1, index == 5, animationTime + index * 0.1);
                 }
                 g.dispose();
             }
@@ -179,16 +184,17 @@ public final class MenuScreen extends GameScreen {
     }
 
     @Override public void onShow() {
+        animation.start();
         var best = window.getRecords().getScores();
         for (int i = 0; i < scores.length; i++) scores[i].setText(i < best.size() ? String.format("%05d", best.get(i)) : "---");
         warning.setText(window.getRecords().getWarning().isBlank() ? "" : "Score save unavailable");
         warning.setToolTipText(window.getRecords().getWarning());
     }
 
+    @Override public void onHide() { animation.stop(); }
+
     @Override protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
-        graphics.setColor(Theme.GRID);
-        for (int x = 0; x < getWidth(); x += 32) graphics.drawLine(x, 0, x, getHeight());
-        for (int y = 0; y < getHeight(); y += 32) graphics.drawLine(0, y, getWidth(), y);
+        PixelArt.background((Graphics2D) graphics, getWidth(), getHeight(), true);
     }
 }

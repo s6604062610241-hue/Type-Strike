@@ -41,6 +41,9 @@ with ZipFile(release / (prefix + '-Windows.zip'), 'w', ZIP_DEFLATED) as archive:
         'Music pauses with the game; menu and battle tracks are bundled for offline play.\n'
         'Music by HydroGene, CC0: https://hydrogene.itch.io/high-quality-16-bit-music\n'
         'See audio/CREDITS.txt inside the JAR or resources/audio/CREDITS.txt in the source.\n'
+        'Art by 0x72 (Robert), CC0: https://0x72.itch.io/dungeontileset-ii\n'
+        'Animated sprites and dungeon backgrounds are bundled for offline play.\n'
+        'See art/0x72/CREDITS.txt inside the JAR for art adaptations and sources.\n'
         'Scores are saved in %USERPROFILE%\\.type-strike\\scores.txt\n'
         'This archive does not include a Java runtime.\n')
 for path in release.glob(prefix + '*.zip'):

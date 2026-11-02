@@ -373,11 +373,7 @@ public final class PlayScreen extends GameScreen {
         }
 
         private void drawField(Graphics2D g) {
-            g.setColor(Theme.FIELD);
-            g.fillRect(0, 0, GameModel.WIDTH, GameModel.HEIGHT);
-            g.setColor(Theme.GRID);
-            for (int x = 0; x < GameModel.WIDTH; x += 28) g.drawLine(x, 0, x, GameModel.HEIGHT);
-            for (int y = 0; y < GameModel.HEIGHT; y += 28) g.drawLine(0, y, GameModel.WIDTH, y);
+            PixelArt.background(g, GameModel.WIDTH, GameModel.HEIGHT, false);
             g.setColor(Theme.FIELD_BORDER);
             g.drawRect(14, 14, GameModel.WIDTH - 29, GameModel.HEIGHT - 29);
             if (model.isSlowActive()) {
@@ -398,7 +394,7 @@ public final class PlayScreen extends GameScreen {
             g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{6, 9}, 0));
             g.drawOval(cx - 72, cy - 64, 144, 128);
             g.setStroke(new BasicStroke(1));
-            PixelArt.wizard(g, cx - 32, cy - 38, 4);
+            PixelArt.wizard(g, cx - 32, cy - 38, 4, model.getElapsed());
         }
 
         private void drawEnemies(Graphics2D g) {
@@ -415,7 +411,8 @@ public final class PlayScreen extends GameScreen {
                 boolean frost = enemy.dropsSlowCharge();
                 boolean blast = enemy.getBlastRadius() > 0;
                 boolean healer = enemy instanceof HealerEnemy;
-                PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite, frost, blast, healer);
+                PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite, frost, blast, healer,
+                        model.getElapsed() + enemy.getId() * 0.13);
                 if (frost || blast || healer) {
                     g.setColor(healer ? Theme.GREEN : blast ? Theme.PURPLE : Theme.ICE);
                     g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 10));
