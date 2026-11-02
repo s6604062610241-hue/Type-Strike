@@ -44,11 +44,13 @@ with ZipFile(release / (prefix + '-Windows.zip'), 'w', ZIP_DEFLATED) as archive:
         'Art by 0x72 (Robert), CC0: https://0x72.itch.io/dungeontileset-ii\n'
         'Animated sprites and dungeon backgrounds are bundled for offline play.\n'
         'See art/0x72/CREDITS.txt inside the JAR for art adaptations and sources.\n'
-        'Pixelify Sans font is bundled; no font installation needed.\n'
-        'Font license: licenses/PixelifySans-OFL.txt (SIL Open Font License 1.1).\n'
+        'VT323 font is bundled; no font installation needed.\n'
+        'Active font license: licenses/VT323-OFL.txt (SIL Open Font License 1.1).\n'
         'Scores are saved in %USERPROFILE%\\.type-strike\\scores.txt\n'
         'This archive does not include a Java runtime.\n')
     archive.write(root / 'resources/fonts/OFL.txt', 'TypeStrike/licenses/PixelifySans-OFL.txt')
     archive.write(root / 'resources/fonts/CREDITS.txt', 'TypeStrike/licenses/PixelifySans-CREDITS.txt')
+    archive.write(root / 'resources/fonts/VT323-OFL.txt', 'TypeStrike/licenses/VT323-OFL.txt')
+    archive.write(root / 'resources/fonts/VT323-CREDITS.txt', 'TypeStrike/licenses/VT323-CREDITS.txt')
 for path in release.glob(prefix + '*.zip'):
     print(path.name, path.stat().st_size, 'bytes')

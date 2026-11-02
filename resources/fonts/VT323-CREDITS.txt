@@ -1,0 +1,7 @@
+VT323 by Peter Hull / The VT323 Project Authors.
+Copyright 2011, The VT323 Project Authors (peter.hull@oikoi.com).
+Source: https://github.com/google/fonts/tree/main/ofl/vt323
+Upstream: https://github.com/phoikoi/VT323
+Original TTF file is unchanged. SIL Open Font License 1.1 is in VT323-OFL.txt.
+Loaded from the game JAR; no system installation is needed.
+Display sizes are adjusted in code for readability; the font file is not modified.
