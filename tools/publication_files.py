@@ -111,7 +111,7 @@ def write_manifest(root):
     manifest = []
     for name, path in sorted(paths.items()):
         raw = path.read_bytes()
-        text = path.suffix.lower() not in ('.jar', '.zip', '.png', '.pdf', '.wav', '.ogg', '.mp3')
+        text = path.suffix.lower() not in ('.jar', '.zip', '.png', '.pdf', '.wav', '.ogg', '.mp3', '.ttf', '.otf')
         canonical = path.read_text(encoding='utf-8').encode() if text else raw
         manifest.append({'path': name, 'source': path.relative_to(root).as_posix(), 'size': len(raw), 'text': text,
                          'sha': sha1(('blob ' + str(len(canonical)) + '\0').encode() + canonical).hexdigest(),

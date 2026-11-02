@@ -79,14 +79,14 @@ public final class PlayScreen extends GameScreen {
             @Override protected Color getSelectionBackground() { return Theme.TEXT; }
         });
         health.getAccessibleContext().setAccessibleName("Tower health");
-        health.setFont(new Font(Font.MONOSPACED, Font.BOLD, 11));
+        health.setFont(Theme.font(11));
         health.setBackground(Theme.FIELD_BORDER);
         health.setForeground(Theme.GREEN);
         health.setBorderPainted(false);
         health.setPreferredSize(new Dimension(200, 18));
         identity.add(health, BorderLayout.SOUTH);
         header.add(identity, BorderLayout.WEST);
-        hud.setFont(new Font(Font.MONOSPACED, Font.BOLD, 14));
+        hud.setFont(Theme.font(16));
         header.add(hud, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
         configurePauseMenu();
@@ -100,15 +100,14 @@ public final class PlayScreen extends GameScreen {
         JPanel status = new JPanel(new BorderLayout(12, 0));
         status.setOpaque(false);
         status.add(feedback, BorderLayout.CENTER);
-        slowButton.setFont(new Font(Font.MONOSPACED, Font.BOLD, 13));
-        slowButton.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.ICE),
-                BorderFactory.createEmptyBorder(5, 12, 5, 12)));
+        slowButton.setFont(Theme.font(13));
+        slowButton.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
         slowButton.setPreferredSize(new Dimension(230, 30));
         slowButton.setToolTipText("Defeat a crystal-marked Frost Slime, then press Space. Stores up to three charges.");
         slowButton.addActionListener(e -> activateSlow());
         status.add(slowButton, BorderLayout.EAST);
         footer.add(status, BorderLayout.NORTH);
-        input.setFont(new Font(Font.MONOSPACED, Font.BOLD, 24));
+        input.setFont(Theme.font(24));
         input.setBackground(Theme.BACKGROUND);
         input.setForeground(Theme.TEXT);
         input.setCaretColor(Theme.GREEN);
@@ -402,7 +401,7 @@ public final class PlayScreen extends GameScreen {
             List<java.awt.Rectangle> labels = new ArrayList<>();
             List<Enemy> sorted = model.getEnemies().stream().sorted(Comparator.comparingDouble(
                     e -> Math.hypot(e.getX() - GameModel.BASE_X, e.getY() - GameModel.BASE_Y))).toList();
-            g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 17));
+            g.setFont(Theme.font(20));
             FontMetrics metrics = g.getFontMetrics();
             for (Enemy enemy : sorted) {
                 int x = (int) enemy.getX();
@@ -415,10 +414,10 @@ public final class PlayScreen extends GameScreen {
                         model.getElapsed() + enemy.getId() * 0.13);
                 if (frost || blast || healer) {
                     g.setColor(healer ? Theme.GREEN : blast ? Theme.PURPLE : Theme.ICE);
-                    g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 10));
+                    g.setFont(Theme.font(10));
                     String tag = healer ? "HEAL" : blast ? "BLAST" : "SLOW";
                     g.drawString(tag, x - g.getFontMetrics().stringWidth(tag) / 2, y + 36);
-                    g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 17));
+                    g.setFont(Theme.font(20));
                 }
                 if (Math.hypot(x - GameModel.BASE_X, y - GameModel.BASE_Y) < 150) {
                     g.setColor(Theme.RED);
@@ -471,7 +470,7 @@ public final class PlayScreen extends GameScreen {
                         g.setColor(Theme.GREEN);
                         g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{5, 5}, 0));
                         g.drawLine((int) healer.getX(), (int) healer.getY(), (int) target.getX(), (int) target.getY());
-                        g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 11));
+                        g.setFont(Theme.font(11));
                         g.drawString(String.format(Locale.ROOT, "HEAL %.1fs", healer.getHealRemaining()),
                                 (int) healer.getX() - 30, (int) healer.getY() + 50);
                     }
@@ -487,7 +486,7 @@ public final class PlayScreen extends GameScreen {
                 } else {
                     g.setColor(Theme.GREEN);
                     g.drawLine((int) effect.x(), (int) effect.y(), (int) effect.targetX(), (int) effect.targetY());
-                    g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
+                    g.setFont(Theme.font(12));
                     g.drawString("ARMOR RESTORED", (int) Math.min(GameModel.WIDTH - 135, effect.targetX() - 40),
                             (int) Math.max(75, effect.targetY() - 60));
                 }
@@ -496,7 +495,7 @@ public final class PlayScreen extends GameScreen {
         }
 
         private void centered(Graphics2D g, String text, int size, int y, Color color) {
-            g.setFont(new Font(Font.MONOSPACED, Font.BOLD, size));
+            g.setFont(Theme.font(size));
             g.setColor(color);
             g.drawString(text, (GameModel.WIDTH - g.getFontMetrics().stringWidth(text)) / 2, y);
         }

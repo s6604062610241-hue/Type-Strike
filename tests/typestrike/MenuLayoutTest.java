@@ -37,6 +37,17 @@ public final class MenuLayoutTest {
         return SwingUtilities.convertRectangle(component.getParent(), component.getBounds(), root);
     }
     private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
+    private static void checkButtons(Container root) {
+        for (Component child : root.getComponents()) {
+            if (!child.isVisible()) continue;
+            if (child instanceof JButton button) {
+                check(button.getFont().getFamily().contains("Pixelify"), "Bundled font must load on buttons");
+                check(button.getFontMetrics(button.getFont()).stringWidth(button.getText()) <= button.getWidth() - 12,
+                        "Button text must fit: " + button.getText());
+            }
+            if (child instanceof Container nested) checkButtons(nested);
+        }
+    }
     public static void main(String[] args) throws Exception {
         Files.createDirectories(Path.of("build/ui-review"));
         Throwable[] error = new Throwable[1];
@@ -67,6 +78,7 @@ public final class MenuLayoutTest {
                         if (child instanceof JLabel label && label.getIcon() != null) medals++;
                     }
                     check(medals == 3, "Three rank medal icons");
+                    checkButtons((Container) root.getComponent(0));
                     for (Component child : ((Container) right).getComponents()) {
                         if (child instanceof JTextArea area) {
                             var last = area.modelToView2D(area.getDocument().getLength());
@@ -86,6 +98,7 @@ public final class MenuLayoutTest {
                 button(play, "MUTE MUSIC").doClick(); music.awaitIdle();
                 check(music.isMuted() && play.getModel().isPaused(), "Pause music control changes preference without unpausing");
                 UiSmokeTest.capture(window, "v1.3.0-pause-muted");
+                checkButtons(play);
                 button(play, "RESUME").doClick();
                 check(music.isMuted() && play.getTypedWord().equals("te"), "Resume retains mute and typed word");
                 UiSmokeTest.capture(window, "v1.3.0-gameplay");

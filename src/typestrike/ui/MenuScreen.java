@@ -154,7 +154,7 @@ public final class MenuScreen extends GameScreen {
 
     private static JTextArea copy(String text, Color color, int rows) {
         JTextArea area = new JTextArea(text, rows, 1);
-        area.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        area.setFont(Theme.font(14));
         area.setForeground(color);
         area.setOpaque(false);
         area.setEditable(false);
@@ -177,7 +177,7 @@ public final class MenuScreen extends GameScreen {
             g.fillPolygon(new int[]{16, 24, 28, 19}, new int[]{20, 16, 27, 32}, 4);
             g.setColor(color); g.fillOval(3, 0, 24, 24);
             g.setColor(Theme.SHADOW); g.setStroke(new BasicStroke(1)); g.drawOval(6, 3, 18, 18);
-            g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 14));
+            g.setFont(Theme.font(14));
             g.drawString(String.valueOf(rank), 11, 17);
             g.dispose();
         }
