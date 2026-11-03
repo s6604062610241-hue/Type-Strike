@@ -3,7 +3,7 @@ package typestrike.model;
 import java.util.Random;
 import java.util.Set;
 
-/** Abstraction and inheritance: shared position/movement, specialized hit behavior. */
+/** รวมข้อมูลตำแหน่งและการเดินไว้ในคลาสแม่ ให้คลาสลูกกำหนดผลเมื่อคำตรง */
 public abstract class Enemy {
     private double x;
     private double y;
@@ -30,12 +30,12 @@ public abstract class Enemy {
 
     public final double getSpeed(double elapsed) {
         double lengthSpeed = Math.max(22, Math.min(56, 190.0 / (word.length() + 1)));
-        // 15% gentler start; 30-second grace, then +10% per minute (cap +50%).
+        // เริ่มช้าลง 15% ไม่เร่งใน 30 วินาทีแรก จากนั้นเพิ่ม 10% ต่อนาที สูงสุดเพิ่ม 50%
         double progression = 1 + Math.min(0.5, Math.max(0, elapsed - 30) / 600.0);
         return lengthSpeed * 0.85 * progression * speedMultiplier();
     }
 
-    /** Returns true when this matching word eliminates the enemy. */
+    /** คืน true เมื่อการพิมพ์คำตรงครั้งนี้กำจัดศัตรูได้ */
     public abstract boolean onWordMatched(WordRepository words, Random random, Set<String> activeWords);
     public abstract int getReward();
     public abstract String getKind();
@@ -44,7 +44,7 @@ public abstract class Enemy {
     public boolean hasArmor() { return false; }
     public boolean dropsSlowCharge() { return false; }
     public double getBlastRadius() { return 0; }
-    /** Most enemies cannot restore armor; the armored subtype owns this state. */
+    /** ศัตรูทั่วไปคืนเกราะไม่ได้ คลาสศัตรูเกราะเป็นผู้ดูแลสถานะนี้ */
     public boolean restoreArmor() { return false; }
     public final String getWord() { return word; }
     public final double getX() { return x; }

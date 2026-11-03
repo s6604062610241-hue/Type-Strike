@@ -98,7 +98,7 @@ public final class SlowPowerUpTest {
         slow.update(remaining);
         check(!slow.isSlowActive(), "Effect expires after remaining play time");
 
-        // A spawned enemy must inherit the global Slow, not just enemies present at activation.
+        // ศัตรูที่เกิดระหว่างใช้ Slow ต้องเดินช้าด้วย ไม่ใช่เฉพาะตัวที่อยู่ตอนกดใช้
         GameModel freshSlow = chargedGame();
         GameModel freshNormal = chargedGame();
         freshSlow.activateSlow();

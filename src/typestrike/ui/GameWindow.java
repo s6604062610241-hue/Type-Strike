@@ -76,7 +76,7 @@ public final class GameWindow extends JFrame {
         if (next == menu) music.play(MusicPlayer.Track.MENU);
         else if (next == play) music.play(MusicPlayer.Track.BATTLE);
         else music.setPaused(true);
-        current.onShow(); // Polymorphic screen lifecycle.
+        current.onShow(); // เรียก onShow() ของหน้าจอแต่ละชนิดผ่านเมท็อดร่วมกัน
     }
 
     public void startGame() {

@@ -1,6 +1,6 @@
 package typestrike.model;
 
-/** Limited stored charges; a timed effect that changes movement, not the game clock. */
+/** เก็บชาร์จได้ตามจำนวนที่กำหนด พลังลดเฉพาะความเร็วเดิน ไม่ลดเวลาเกม */
 public final class SlowPowerUp {
     public static final double DURATION = 5.0;
     public static final int MAX_CHARGES = 3;
@@ -21,7 +21,7 @@ public final class SlowPowerUp {
         return true;
     }
 
-    /** Split a frame at expiration so its un-slowed portion uses normal speed. */
+    /** ถ้าพลังหมดกลางช่วงอัปเดต ให้ส่วนเวลาที่เหลือใช้ความเร็วปกติ */
     public double advance(double seconds) {
         if (!Double.isFinite(seconds) || seconds < 0) throw new IllegalArgumentException("Invalid frame time");
         double affected = Math.min(seconds, remaining);

@@ -14,7 +14,7 @@ import typestrike.model.NormalEnemy;
 import typestrike.model.WordRepository;
 import typestrike.storage.HighScoreStore;
 
-/** Deterministic integration tests; no extra testing libraries required. */
+/** กำหนดข้อมูลทดสอบให้ได้ผลซ้ำเดิม และตรวจหลายส่วนร่วมกันโดยไม่ใช้ไลบรารีทดสอบเพิ่ม */
 public final class GameRulesTest {
     private static int checks;
 

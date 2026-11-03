@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-/** Vocabulary is a bundled resource, so the JAR works outside the source directory. */
+/** รวมคลังคำไว้ในเกม จึงเปิด JAR จากโฟลเดอร์อื่นได้โดยไม่ต้องมีซอร์สโค้ดอยู่ด้วย */
 public final class WordRepository {
     private final List<String> words;
 

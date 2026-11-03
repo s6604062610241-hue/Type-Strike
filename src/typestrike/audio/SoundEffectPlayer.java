@@ -11,7 +11,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 
-/** Five cached one-shot sounds; game rules remain independent of audio hardware. */
+/** เก็บเสียงสั้นทั้งห้าไว้ใช้ซ้ำ โดยแยกระบบเสียงออกจากกติกาเกม */
 public final class SoundEffectPlayer implements AutoCloseable {
     public enum Effect {
         HIT("hit"), ARMOR("armor"), DAMAGE("damage"), SLOW("slow"), BLAST("blast");
@@ -35,7 +35,7 @@ public final class SoundEffectPlayer implements AutoCloseable {
     private boolean muted;
     private boolean paused = true;
     private boolean closed;
-    // Invalidates queued requests when a pause, mute, screen change or close arrives.
+    // ยกเลิกคำสั่งเสียงที่รออยู่ เมื่อพัก ปิดเสียง เปลี่ยนหน้า หรือปิดเกม
     private long generation;
     private volatile String warning = "";
 
@@ -43,7 +43,7 @@ public final class SoundEffectPlayer implements AutoCloseable {
 
     public SoundEffectPlayer(Factory factory) {
         Objects.requireNonNull(factory);
-        // Load each short sound once, off the Swing event thread, before playing.
+        // โหลดเสียงแต่ละไฟล์ไว้ครั้งเดียว โดยแยกงานโหลดออกจากเธรดหน้าจอ
         worker.execute(() -> {
             for (Effect effect : Effect.values()) {
                 synchronized (this) { if (closed) return; }
@@ -65,7 +65,7 @@ public final class SoundEffectPlayer implements AutoCloseable {
         try (var stream = new BufferedInputStream(resource);
              var decoded = AudioSystem.getAudioInputStream(stream)) {
             clip.open(decoded);
-            // The bundled PCM already includes the requested 30% attenuation.
+            // ไฟล์เสียงที่รวมไว้ลดระดับเสียงลง 30% แล้ว
             if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 var gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                 gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), -12f)));
@@ -73,7 +73,7 @@ public final class SoundEffectPlayer implements AutoCloseable {
         } catch (Exception failure) { clip.close(); throw failure; }
         return new Playback() {
             public void play() {
-                // Retrigger one cached clip rather than stacking unlimited voices.
+                // เริ่มเสียงเดิมใหม่ แทนการเปิดเสียงชนิดเดียวกันซ้อนหลายชุด
                 clip.stop();
                 clip.setFramePosition(0);
                 clip.start();

@@ -3,7 +3,7 @@ package typestrike.model;
 import java.util.Random;
 import java.util.Set;
 
-/** A first hit breaks armor and assigns a new word; the second eliminates it. */
+/** คำแรกทำลายเกราะและเปลี่ยนคำ พิมพ์คำใหม่อีกครั้งจึงกำจัดศัตรูได้ */
 public final class ArmoredEnemy extends Enemy {
     private boolean armored = true;
 

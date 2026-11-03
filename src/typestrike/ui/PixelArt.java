@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-/** Bundled sprites and backgrounds. Source credits accompany each art folder. */
+/** โหลดภาพตัวละครและฉากที่รวมไว้ในเกม แต่ละโฟลเดอร์มีเครดิตแหล่งที่มา */
 final class PixelArt {
     private static final BufferedImage BARRIER = fittedSprite("/art/custom/rune-dome.png", 144, 144);
     private static final BufferedImage[] CROWNS = {
@@ -68,7 +68,7 @@ final class PixelArt {
         if (bounds == null) throw new IllegalStateException("Empty sprite animation");
         return bounds;
     }
-    /** Crop transparent margins and cache the final small sprite once, not each frame. */
+    /** ตัดขอบโปร่งใสและเก็บภาพขนาดพร้อมใช้ไว้ครั้งเดียว ไม่ทำใหม่ทุกครั้งที่วาด */
     private static BufferedImage fittedSprite(String resource, int maxWidth, int maxHeight) {
         BufferedImage original = loadResource(resource);
         Rectangle region = bounds(new BufferedImage[]{original}, 32);
@@ -114,11 +114,11 @@ final class PixelArt {
     }
     static void enemy(Graphics2D g, int x, int y, int scale, boolean armor, boolean elite,
                       boolean frost, boolean blast, boolean healer, double seconds) {
-        // An armored orc loses its mask with its armor; healing restores both.
+        // ออร์คถอดหน้ากากเมื่อเกราะแตก และกลับมาใส่หน้ากากเมื่อได้รับเกราะคืน
         int kind = healer ? 4 : blast ? 3 : frost ? 2 : elite && armor ? 1 : 0;
         BufferedImage image = ENEMIES[kind][frame(seconds)];
         Rectangle region = ENEMY_BOUNDS[kind];
-        // Size by visible body height, not transparent canvas. Keep original proportions.
+        // ปรับขนาดตามความสูงตัวละครที่มองเห็น โดยไม่นับขอบโปร่งใสและคงสัดส่วนเดิม
         int actual = Math.max(1, Math.round(66f * scale / 3 / region.height));
         int left = x + (16 * scale - region.width * actual) / 2;
         int top = y + (16 * scale - region.height * actual) / 2;

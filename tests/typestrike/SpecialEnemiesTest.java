@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.Set;
 import typestrike.model.*;
 
-/** Controlled encounters exercise combinations rather than waiting for random spawns. */
+/** จัดสถานการณ์ศัตรูเพื่อทดสอบผลร่วมกัน โดยไม่ต้องรอให้สุ่มเกิด */
 public final class SpecialEnemiesTest {
     private static int checks;
     private static final WordRepository WORDS = new WordRepository();

@@ -18,7 +18,7 @@ import typestrike.model.*;
 import typestrike.ui.GameWindow;
 import typestrike.ui.PlayScreen;
 
-/** Actual UI listeners and controlled encounters, without requiring audio hardware. */
+/** ทดสอบตัวรับเหตุการณ์ของหน้าจอจริงกับสถานการณ์ที่กำหนด โดยไม่ต้องมีอุปกรณ์เสียง */
 public final class SoundEffectsUiTest {
     private static JButton button(Container root, String prefix) {
         for (Component child : root.getComponents()) {

@@ -5,12 +5,12 @@ versions/
 tmp/
 *.log
 .DS_Store
-# Academic and personal working documents stay on this PC.
+# เก็บเอกสารวิชาและเอกสารส่วนตัวไว้ในเครื่องนี้
 docs/
 AGENTS.md
 VERSIONS.md
 tools/create_report.py
 tools/backup_version.py
-# Family side projects must never be published with the class project.
+# ไม่เผยแพร่โปรเจกต์ของครอบครัวปนกับงานวิชา
 local-only/
 

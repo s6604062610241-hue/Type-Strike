@@ -1,6 +1,6 @@
 package typestrike.model;
 
-/** Encapsulation: the only way to change health is through a validated operation. */
+/** Encapsulation คือควบคุมการแก้ข้อมูล โดยให้เปลี่ยน HP ผ่านเมท็อดที่ตรวจค่าก่อน */
 public final class Base {
     public static final int MAX_HEALTH = 100;
     private int health = MAX_HEALTH;

@@ -11,7 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 
 final class Theme {
-    // Original v1.0.0 colors. The theme comparison was a temporary experiment.
+    // ใช้ชุดสีเดิมจาก v1.0.0 การเปรียบเทียบธีมเป็นเพียงการทดลอง
     static final Color BACKGROUND = new Color(12, 17, 30);
     static final Color PANEL = new Color(21, 29, 47);
     static final Color TEXT = new Color(234, 241, 252);
@@ -41,7 +41,7 @@ final class Theme {
         }
     }
 
-    // Match the chosen Pixelify specimen's readable visible letter height.
+    // ปรับขนาด Pixelify ให้ความสูงตัวอักษรอ่านง่ายตามตัวอย่างที่เลือก
     static Font font(int size) { return PIXEL.deriveFont(Font.PLAIN, Math.max(14, Math.round(size * 1.15f))); }
 
     private Theme() { }
@@ -68,7 +68,7 @@ final class Theme {
         return button;
     }
 
-    /** Code-drawn stone bevel; standard JButton actions, focus and keyboard behavior remain. */
+    /** วาดขอบปุ่มเป็นหิน โดยยังใช้การกด การเลือกปุ่ม และคีย์บอร์ดตามปกติของ JButton */
     private static final class StoneButton extends JButton {
         StoneButton(String text) { super(text); }
 

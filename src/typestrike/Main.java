@@ -3,7 +3,7 @@ package typestrike;
 import javax.swing.SwingUtilities;
 import typestrike.ui.GameWindow;
 
-/** Application entry point. All Swing components are created on the event thread. */
+/** จุดเริ่มโปรแกรม สร้างส่วนของหน้าจอ Swing บนเธรดที่ดูแลหน้าจอ */
 public final class Main {
     private Main() { }
 

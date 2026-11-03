@@ -16,7 +16,7 @@ import typestrike.model.WordRepository;
 import typestrike.ui.GameWindow;
 import typestrike.ui.PlayScreen;
 
-/** In-process Swing integration check and offscreen layout renders. Never shows a window. */
+/** ทดสอบการทำงานร่วมกันของหน้าจอ Swing และวาดภาพตรวจรูปแบบ โดยไม่เปิดหน้าต่างจริง */
 public final class UiSmokeTest {
     private static JButton button(Container root, String prefix) {
         for (Component c : root.getComponents()) {
@@ -57,11 +57,11 @@ public final class UiSmokeTest {
             GameWindow window = null;
             try {
                 window = new GameWindow();
-                window.addNotify(); // Create layout peers, but never show or focus a window.
+                window.addNotify(); // เตรียมส่วนที่หน้าต่างต้องใช้จัดวาง โดยไม่แสดงหรือเลือกหน้าต่าง
                 capture(window, "menu");
                 button((Container) window.getContentPane().getComponent(0), "START").doClick();
                 PlayScreen play = (PlayScreen) window.getContentPane().getComponent(1);
-                play.onHide(); // Stop the real-time timer; the test drives model time.
+                play.onHide(); // หยุดตัวจับเวลาจริง แล้วให้ชุดทดสอบกำหนดเวลาเกมเอง
                 GameModel model = new GameModel(new WordRepository(), new Random(73));
                 for (int i = 0; i < 130; i++) model.update(0.1);
                 play.setModel(model);

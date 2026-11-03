@@ -18,7 +18,7 @@ function Find-Jdk {
 $jdk = Find-Jdk
 $classes = Join-Path $PSScriptRoot 'build\classes'
 $dist = Join-Path $PSScriptRoot 'dist'
-# Remove compiler output only, so removed Java classes cannot leak into the next JAR.
+# ล้างเฉพาะไฟล์ที่คอมไพล์ไว้ เพื่อไม่ให้คลาสที่ลบแล้วติดไปใน JAR ชุดใหม่
 $workspacePath = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') + '\'
 $classesPath = [System.IO.Path]::GetFullPath($classes)
 if (-not $classesPath.StartsWith($workspacePath, [System.StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid compiler output directory.' }

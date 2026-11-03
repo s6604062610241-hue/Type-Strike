@@ -6,7 +6,7 @@ import java.util.HashSet;
 import typestrike.model.ArmoredEnemy;
 import typestrike.model.WordRepository;
 
-/** Exercises the real renderer/resources without Swing windows or an audio device. */
+/** ทดสอบส่วนวาดภาพและไฟล์ที่เกมใช้จริง โดยไม่เปิดหน้าต่างหรือใช้อุปกรณ์เสียง */
 public final class ArtResourcesTest {
     private static int[] enemy(int kind, double seconds) {
         BufferedImage image = new BufferedImage(100, 110, BufferedImage.TYPE_INT_ARGB);
@@ -35,7 +35,7 @@ public final class ArtResourcesTest {
             crowns.add(Arrays.hashCode(pixels));
         }
         if (crowns.size() != 3) throw new AssertionError("Rank crowns must have distinct gold/silver/bronze artwork");
-        // Exercise a real armor break/restore, rather than just a hand-set draw flag.
+        // ทดสอบทำลายและคืนเกราะผ่านกติกาจริง แล้วจึงตรวจภาพที่วาด
         ArmoredEnemy orc = new ArmoredEnemy(6, "armor", 0, 0);
         for (int state = 0; state < 3; state++) {
             if (state == 1) orc.onWordMatched(new WordRepository(), new java.util.Random(5), java.util.Set.of("armor"));

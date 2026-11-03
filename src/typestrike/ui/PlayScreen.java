@@ -119,7 +119,7 @@ public final class PlayScreen extends GameScreen {
         input.getAccessibleContext().setAccessibleName("Enemy word");
         input.setToolTipText("Type the word over an enemy, then press Enter");
         input.addActionListener(e -> submit());
-        // Prevent a pasted paragraph from obscuring the entire input field.
+        // จำกัดข้อความที่วางลงมา ไม่ให้ยาวจนบังช่องพิมพ์
         ((javax.swing.text.AbstractDocument) input.getDocument()).setDocumentFilter(new javax.swing.text.DocumentFilter() {
             @Override public void insertString(FilterBypass fb, int offset, String text,
                     javax.swing.text.AttributeSet attr) throws javax.swing.text.BadLocationException {
@@ -150,7 +150,7 @@ public final class PlayScreen extends GameScreen {
         AbstractAction slowAction = new AbstractAction() {
             @Override public void actionPerformed(ActionEvent e) { activateSlow(); }
         };
-        // A typed-space binding consumes the character instead of inserting a space.
+        // รับปุ่ม Space เป็นคำสั่งใช้พลัง โดยไม่ใส่ช่องว่างลงในช่องพิมพ์
         input.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(' '), "activate-slow");
         input.getActionMap().put("activate-slow", slowAction);
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(' '), "activate-slow");
@@ -235,7 +235,7 @@ public final class PlayScreen extends GameScreen {
 
     private void tick() {
         long now = System.nanoTime();
-        // Cap a single frame so a debugger/window stall cannot teleport enemies.
+        // จำกัดเวลาต่อการอัปเดต เพื่อไม่ให้ศัตรูกระโดดไกลเมื่อหน้าจอหรือการตรวจโค้ดค้าง
         double seconds = Math.min(0.1, (now - previousNanos) / 1_000_000_000.0);
         previousNanos = now;
         if (!model.isPaused()) {
@@ -268,7 +268,7 @@ public final class PlayScreen extends GameScreen {
         GameModel.HitResult hit = model.submit(text);
         input.setText("");
         if (hit.matched()) {
-            // One blast sound per submitted word, including an entire chain reaction.
+            // เล่นเสียงระเบิดครั้งเดียวต่อคำที่ส่ง แม้จะมีระเบิดลูกโซ่
             boolean blasted = model.getCombatEffects().stream().skip(previousEffects)
                     .anyMatch(effect -> effect.kind().equals("BLAST"));
             window.getSoundEffects().play(blasted ? SoundEffectPlayer.Effect.BLAST :
@@ -358,7 +358,7 @@ public final class PlayScreen extends GameScreen {
                         model.hasSlowCharge() ? " READY" : ""));
     }
 
-    /** Scaled, letterboxed world; resizing never changes game coordinates or speed. */
+    /** ปรับภาพตามขนาดจอและเว้นขอบส่วนเกิน โดยไม่เปลี่ยนพิกัดหรือความเร็วในกติกาเกม */
     private final class Arena extends JPanel {
         Arena() {
             setBackground(Theme.BACKGROUND);
@@ -412,7 +412,7 @@ public final class PlayScreen extends GameScreen {
             int cx = (int) GameModel.BASE_X;
             int cy = (int) GameModel.BASE_Y;
             PixelArt.barrier(g, cx, cy + 8);
-            // Rest the wizard's visible feet on the dome's lower platform.
+            // จัดเท้าพ่อมดให้วางบนฐานล่างของภาพโดม
             PixelArt.wizard(g, cx - 32, cy - 14, 4, model.getElapsed());
         }
 
@@ -463,7 +463,7 @@ public final class PlayScreen extends GameScreen {
         private java.awt.Rectangle placeLabel(java.awt.Rectangle desired, List<java.awt.Rectangle> occupied) {
             java.awt.Rectangle best = desired;
             int bestDistance = Integer.MAX_VALUE;
-            // Find the closest clear position instead of bouncing between two crowded rows.
+            // หาตำแหน่งว่างที่ใกล้ที่สุด เพื่อไม่ให้ป้ายคำสลับไปมาระหว่างสองแถวที่แน่น
             for (int row = -12; row <= 12; row++) for (int column = -1; column <= 1; column++) {
                 int x = Math.max(16, Math.min(GameModel.WIDTH - desired.width - 16,
                         desired.x + column * (desired.width + 12)));

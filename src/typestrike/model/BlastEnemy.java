@@ -3,7 +3,7 @@ package typestrike.model;
 import java.util.Random;
 import java.util.Set;
 
-/** One word detonates a friendly-to-the-tower blast, including chain reactions. */
+/** พิมพ์คำตรงแล้วระเบิดใส่ศัตรูใกล้เคียง ระเบิดต่อกันได้และไม่ทำร้ายฐาน */
 public final class BlastEnemy extends Enemy {
     public static final double RADIUS = 140;
     public BlastEnemy(long id, String word, double x, double y) { super(id, word, x, y); }

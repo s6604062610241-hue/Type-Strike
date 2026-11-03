@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/** Local top three. The location is independent of the working directory. */
+/** เก็บคะแนนสามอันดับในเครื่อง โดยพาธไฟล์ไม่ขึ้นกับโฟลเดอร์ที่ใช้เปิดเกม */
 public final class HighScoreStore {
     private final Path file;
     private final List<Integer> scores = new ArrayList<>();
@@ -23,7 +23,7 @@ public final class HighScoreStore {
                     try {
                         int score = Integer.parseInt(line.trim());
                         if (score > 0) scores.add(score);
-                    } catch (NumberFormatException ignored) { /* Skip damaged entries. */ }
+                    } catch (NumberFormatException ignored) { /* ข้ามรายการคะแนนที่อ่านเป็นตัวเลขไม่ได้ */ }
                 }
                 trim();
             }

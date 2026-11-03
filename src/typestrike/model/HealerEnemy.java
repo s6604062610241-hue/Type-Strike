@@ -3,7 +3,7 @@ package typestrike.model;
 import java.util.Random;
 import java.util.Set;
 
-/** Support clock is encapsulated here; the model selects a living nearby target. */
+/** คลาสนี้เก็บเวลารักษา ส่วน GameModel เลือกศัตรูใกล้เคียงที่ยังอยู่บนสนาม */
 public final class HealerEnemy extends Enemy {
     public static final double RANGE = 190;
     public static final double INTERVAL = 8;
@@ -13,7 +13,7 @@ public final class HealerEnemy extends Enemy {
     public boolean advanceHealing(double seconds) {
         remaining -= seconds;
         if (remaining > 1e-9) return false;
-        remaining = INTERVAL; // One heal per update; never burst-heal after a stalled frame.
+        remaining = INTERVAL; // รักษาครั้งเดียวต่อการอัปเดต ไม่รักษารัวชดเชยเมื่อหน้าจอค้าง
         return true;
     }
     public boolean isPreparingHeal() { return remaining <= WARNING; }

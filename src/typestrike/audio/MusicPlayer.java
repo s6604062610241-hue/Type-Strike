@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
-/** Owns background music independently of game rules. Audio loading never blocks Swing. */
+/** ดูแลเพลงแยกจากกติกาเกม และโหลดเพลงโดยไม่ให้หน้าจอ Swing ต้องรอ */
 public final class MusicPlayer implements AutoCloseable {
     public enum Track {
         MENU("/audio/menu.wav"), BATTLE("/audio/battle.wav");
@@ -30,7 +30,7 @@ public final class MusicPlayer implements AutoCloseable {
         thread.setDaemon(true);
         return thread;
     });
-    // Only the audio worker accesses open lines and failed-track state.
+    // ให้งานเสียงที่ทำแยกจากหน้าจอ เป็นผู้ดูแลอุปกรณ์เสียงและสถานะเพลงที่เปิดไม่ได้
     private final Map<Track, Playback> lines = new EnumMap<>(Track.class);
     private final Set<Track> failed = EnumSet.noneOf(Track.class);
     private Playback active;
@@ -76,7 +76,7 @@ public final class MusicPlayer implements AutoCloseable {
         };
     }
 
-    /** Reduce sample amplitude by 30%, including devices without hardware gain controls. */
+    /** ลดระดับเสียงลง 30% แม้อุปกรณ์จะไม่มีตัวควบคุมระดับเสียงให้ใช้ */
     private static void reduceVolume(byte[] samples) {
         for (int i = 0; i + 1 < samples.length; i += 2) {
             short original = (short) ((samples[i] & 255) | (samples[i + 1] << 8));
@@ -113,7 +113,7 @@ public final class MusicPlayer implements AutoCloseable {
             try { next = factory.open(wanted); lines.put(wanted, next); }
             catch (Exception failure) { failed.add(wanted); warning = "Music unavailable on this device"; }
         }
-        // A mute, pause or close may arrive while a device is opening.
+        // ระหว่างเปิดอุปกรณ์ ผู้เล่นอาจสั่งปิดเสียง พัก หรือปิดเกมได้
         synchronized (this) {
             if (closed || muted || paused || wanted != track) next = null;
             if (active == next) return;
@@ -123,7 +123,7 @@ public final class MusicPlayer implements AutoCloseable {
         }
     }
 
-    /** Test barrier: wait for queued operations without requiring an audio device. */
+    /** ใช้ในการทดสอบ เพื่อรอให้งานเสียงที่ค้างอยู่ทำเสร็จ โดยไม่ต้องมีอุปกรณ์เสียงจริง */
     public void awaitIdle() throws Exception { worker.submit(() -> { }).get(5, TimeUnit.SECONDS); }
 
     @Override public synchronized void close() {

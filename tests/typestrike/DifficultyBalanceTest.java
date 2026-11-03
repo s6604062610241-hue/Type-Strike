@@ -7,7 +7,7 @@ import typestrike.model.GameModel;
 import typestrike.model.NormalEnemy;
 import typestrike.model.WordRepository;
 
-/** Player-facing pace guarantees rather than a duplicate of the difficulty formula. */
+/** ตรวจจังหวะความยากที่ผู้เล่นได้รับ โดยไม่เขียนสูตรเดิมซ้ำเพื่อใช้เป็นคำตอบ */
 public final class DifficultyBalanceTest {
     public static void main(String[] args) {
         Enemy enemy = new NormalEnemy(1, "cat", 0, 0);

@@ -41,7 +41,7 @@ jobs:
             if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Invalid version');
             const tag = `v${version}`;
             const repo = context.repo;
-            // Named versions are immutable: never overwrite an existing release.
+            // เก็บรุ่นที่เผยแพร่แล้วไว้ตามเดิม ไม่เขียนทับ Release ที่มีอยู่
             let existing;
             try { existing = await github.rest.repos.getReleaseByTag({...repo, tag}); }
             catch (error) { if (error.status !== 404) throw error; }

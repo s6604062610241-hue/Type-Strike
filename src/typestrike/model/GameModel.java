@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
-/** Pure game rules. No Swing or filesystem dependencies. Updated by one UI timer. */
+/** ดูแลกติกาโดยไม่เรียก Swing หรืออ่านเขียนไฟล์ หน้าจอเรียกอัปเดตผ่านตัวจับเวลาตัวเดียว */
 public final class GameModel {
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 540;
@@ -19,7 +19,7 @@ public final class GameModel {
     public static final int MAX_ENEMIES = 14;
     private final WordRepository words;
     private final Random random;
-    // Composition: a game owns a base and a collection of enemies.
+    // Composition คือมีวัตถุเป็นส่วนประกอบ เกมหนึ่งรอบมีฐานและรายการศัตรูของตัวเอง
     private final Base base = new Base();
     private final SlowPowerUp slow = new SlowPowerUp();
     private final List<Enemy> enemies = new ArrayList<>();
@@ -81,12 +81,12 @@ public final class GameModel {
     private void spawnEnemy() {
         double x = 0;
         double y = 0;
-        // Avoid stacked labels at the spawn point; moving paths may still cross.
+        // เว้นระยะตอนเกิดไม่ให้คำซ้อนกัน แต่เส้นทางเดินยังตัดกันได้
         for (int attempt = 0; attempt < 30; attempt++) {
             int side = random.nextInt(4);
             x = side == 0 ? 70 : side == 1 ? WIDTH - 70 : 70 + random.nextDouble() * (WIDTH - 140);
             y = side == 2 ? 64 : side == 3 ? HEIGHT - 45 : 64 + random.nextDouble() * (HEIGHT - 109);
-            boolean crowded = y < 100 && x > 825; // Keep sprites clear of the health HUD.
+            boolean crowded = y < 100 && x > 825; // เว้นพื้นที่ด้านบนสำหรับข้อมูลเกม เพื่อไม่ให้ภาพศัตรูบัง
             for (Enemy other : enemies) {
                 if (Math.hypot(x - other.getX(), y - other.getY()) < 105) crowded = true;
             }
@@ -95,7 +95,7 @@ public final class GameModel {
         }
         String word = words.nextWord(random, activeWords());
         spawned++;
-        // Guaranteed introductions let the player learn each rule before random mixes.
+        // ให้ศัตรูแต่ละชนิดปรากฏตามลำดับก่อน เพื่อแนะนำกติกาแล้วจึงสุ่มผสม
         double roll = random.nextDouble();
         if (spawned == 12) {
             enemies.add(new BlastEnemy(spawned, word, x, y));
@@ -128,7 +128,7 @@ public final class GameModel {
         for (Enemy enemy : List.copyOf(enemies)) {
             if (!enemy.getWord().equals(word)) continue;
             matches++;
-            // Polymorphism: each subtype decides how to react to the same call.
+            // Polymorphism คือเรียกเมท็อดเดียวกัน แต่ศัตรูแต่ละชนิดกำหนดผลของตัวเอง
             boolean eliminated = enemy.onWordMatched(words, random, activeWords());
             int beforeScore = score;
             int beforeCharges = slow.getCharges();
@@ -162,7 +162,7 @@ public final class GameModel {
         return false;
     }
 
-    /** Nearest exposed armored enemy; keeping its word preserves any typing in progress. */
+    /** เลือกศัตรูเกราะแตกที่ใกล้ที่สุด คงคำเดิมไว้เพื่อไม่รบกวนคำที่ผู้เล่นกำลังพิมพ์ */
     public Enemy getHealTarget(HealerEnemy healer) {
         if (!enemies.contains(healer)) return null;
         Enemy target = null;

@@ -8,7 +8,7 @@ import javax.sound.sampled.AudioSystem;
 import typestrike.audio.SoundEffectPlayer;
 import typestrike.audio.SoundEffectPlayer.Effect;
 
-/** Resources and simulated output, including an event queued while a device opens. */
+/** ตรวจไฟล์เสียงและจำลองการเล่น รวมกรณีมีคำสั่งรอขณะเปิดอุปกรณ์เสียง */
 public final class SoundEffectPlayerTest {
     private static int checks;
     private static void check(boolean condition, String message) {

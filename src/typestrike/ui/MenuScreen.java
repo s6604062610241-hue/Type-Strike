@@ -18,7 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-/** Main menu follows the owner's sketch: brand, actions, sprites, two lower information cards. */
+/** จัดเมนูตามภาพร่างที่เลือก มีชื่อเกม ปุ่ม ตัวละคร และข้อมูลสองกลุ่มด้านล่าง */
 public final class MenuScreen extends GameScreen {
     private final JLabel[] scores = new JLabel[3];
     private final JLabel warning = Theme.label("", 10, Theme.RED);

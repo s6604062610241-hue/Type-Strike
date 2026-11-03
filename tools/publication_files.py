@@ -1,7 +1,7 @@
-"""Allow only game files in public uploads; preserve local academic documents unchanged.
+"""เลือกเฉพาะไฟล์เกมสำหรับเผยแพร่ และเก็บเอกสารวิชาในเครื่องไว้ตามเดิม
 
-Running this prepares an upload manifest in tmp/ and sanitized copies of historical
-source packages. It does not upload, rewrite Git history, or modify old local packages.
+เมื่อเรียกสคริปต์ จะเตรียมรายการไฟล์ใน tmp/ และสำเนาชุดซอร์สรุ่นเก่าที่ตัดเอกสารออก
+ไม่อัปโหลด ไม่แก้ประวัติ Git และไม่เปลี่ยนชุดไฟล์เก่าในเครื่อง
 """
 from hashlib import sha1, sha256
 from pathlib import Path, PurePosixPath

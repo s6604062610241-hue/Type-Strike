@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioSystem;
 import typestrike.audio.MusicPlayer;
 
-/** Fake playback verifies sound decisions without playing audio or needing hardware in CI. */
+/** จำลองการเล่นเสียงเพื่อตรวจคำสั่ง โดยไม่ส่งเสียงจริงและไม่ต้องมีอุปกรณ์บนเครื่องทดสอบ */
 public final class MusicPlayerTest {
     private static int checks;
     private static void check(boolean value, String message) {

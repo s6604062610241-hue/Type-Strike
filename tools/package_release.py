@@ -1,4 +1,4 @@
-"""Package the current source and playable version; never generate or change reports."""
+"""จัดชุดซอร์สโค้ดและเกมรุ่นปัจจุบัน โดยไม่สร้างหรือแก้รายงาน"""
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 from publication_files import SOURCE_DIRS, SOURCE_FILES
