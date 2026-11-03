@@ -49,7 +49,8 @@ jobs:
             const files = [
               [`TypeStrike-${tag}.jar`, 'dist/TypeStrike.jar', 'application/java-archive'],
               [`TypeStrike-${tag}-Windows.zip`, `release/TypeStrike-${tag}-Windows.zip`, 'application/zip'],
-              [`TypeStrike-${tag}-Source.zip`, `release/TypeStrike-${tag}-Source.zip`, 'application/zip']
+              [`TypeStrike-${tag}-Source.zip`, `release/TypeStrike-${tag}-Source.zip`, 'application/zip'],
+              ['CHANGELOG.md', 'CHANGELOG.md', 'text/markdown']
             ];
             for (const name of ['menu', 'gameplay', 'pause']) {
               const path = `screenshots/${name}.png`;
@@ -74,6 +75,8 @@ jobs:
               ? 'Places the main-menu wizard centered above a separate row of all five enemies. Reduces both menu and battle music sample amplitude by 30% relative to v1.4.3, including devices without hardware gain. Existing mute/pause behavior remains. Sound effects are not yet implemented.\n\nPreserves gameplay rules and in-game sprite sizes. Requires Java 21+: extract the Windows ZIP and open Play.cmd. Includes source, screenshots, JAR, asset/font licenses and SHA256 checksums. Gameplay/audio tests pass; menu reviewed at normal/minimum sizes.'
               : version === '1.4.5'
               ? 'Switches to the owner-selected VT323 font (option B) throughout the menu, buttons, HUD, enemy words and typing input. Adjusts display sizes for VT323\'s smaller letter height and bundles its unchanged font, copyright and SIL OFL 1.1 license. No font installation required.\n\nPreserves layout, sprites, gameplay and the previously reduced music volume. Java 21+: extract the Windows ZIP and open Play.cmd. Includes source, current screenshots, JAR, licenses and SHA256 checksums. Gameplay/audio/art tests pass; font loading, text fit and UI interactions verified at normal/minimum sizes.'
+              : version === '1.5.0'
+              ? 'Adds five owner-selected Kenney sound effects with separate Music/SFX mute controls. Masked Orc becomes Orc Warrior when armor breaks and returns when healed. Removes enemy type overlays and thin arena frames. Adds the selected J Rune Dome, R2 gold/silver/bronze crowns and adjusts the wizard to rest on the dome base. Uses Pixelify Sans throughout with concise instructions that fit small windows.\n\nPreserves HP, collision, difficulty, enemy abilities and 5-second Slow with 3 charges. Custom dome/crown artwork was created with ImageGen; source and asset credits are bundled.\n\nRequires Java 21+. Extract the Windows ZIP and open Play.cmd. Includes JAR, game-only source, Windows package, current screenshots, CHANGELOG.md for all released versions and local previews, and SHA256 checksums. Rule/audio/art tests pass; UI reviewed at normal and minimum sizes.\n\n[Version history](https://github.com/s6604062610241-hue/Type-Strike/blob/main/CHANGELOG.md)'
               : 'Java 21 typing defense game. Extract the Windows ZIP and open Play.cmd. Source, playable JAR and SHA256 checksums attached. Game rules tested before packaging.';
             const release = await github.rest.repos.createRelease({...repo, tag_name: tag, target_commitish: context.sha,
               name: `Type Strike ${tag}`, body, draft: true});

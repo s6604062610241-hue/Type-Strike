@@ -1,0 +1,12 @@
+Medals by Kenney Vleugels (Kenney.nl)
+License: Creative Commons Zero (CC0 1.0 Universal)
+https://creativecommons.org/publicdomain/zero/1.0/
+Creator page: https://kenney.nl/assets/medals
+Original creator upload: https://lpc.opengameart.org/comment/20112
+Downloaded original ZIP: https://opengameart.org/sites/default/files/kenneyMedals.zip
+
+gold.png = PNG/flat_medal4.png
+silver.png = PNG/flat_medal3.png
+bronze.png = PNG/flat_medal2.png
+All three PNG files are unchanged originals; runtime nearest-neighbor scaling
+fits them into the local leaderboard. Kenney-Readme.txt is the original notice.

@@ -41,7 +41,7 @@ public final class MenuLayoutTest {
         for (Component child : root.getComponents()) {
             if (!child.isVisible()) continue;
             if (child instanceof JButton button) {
-                check(button.getFont().getFamily().contains("VT323"), "Selected VT323 font must load on buttons");
+                check(button.getFont().getFamily().contains("Pixelify"), "Selected Pixelify Sans font must load on buttons");
                 check(button.getFontMetrics(button.getFont()).stringWidth(button.getText()) <= button.getWidth() - 12,
                         "Button text must fit: " + button.getText());
             }

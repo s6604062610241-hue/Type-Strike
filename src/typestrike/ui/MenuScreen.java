@@ -1,11 +1,9 @@
 package typestrike.ui;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -124,10 +122,10 @@ public final class MenuScreen extends GameScreen {
         JPanel card = card("leaderboard", 260);
         card.add(Theme.label("LOCAL TOP 3", 16, Theme.GOLD));
         card.add(Box.createVerticalStrut(18));
-        Color[] colors = {Theme.GOLD, Theme.METAL, new Color(199, 141, 106)};
         for (int i = 0; i < scores.length; i++) {
             scores[i] = Theme.label("---", 18, Theme.TEXT);
-            scores[i].setIcon(new MedalIcon(i + 1, colors[i]));
+            scores[i].setIcon(new CrownIcon(i + 1));
+            scores[i].setToolTipText("Place " + (i + 1));
             scores[i].setIconTextGap(16);
             scores[i].setAlignmentX(0f);
             card.add(scores[i]);
@@ -143,11 +141,11 @@ public final class MenuScreen extends GameScreen {
         JPanel card = card("how-to-play", 260);
         card.add(Theme.label("HOW TO PLAY", 16, Theme.GREEN));
         card.add(Box.createVerticalStrut(12));
-        card.add(copy("Type a word + ENTER to strike.\nDefend the tower at the center.", Theme.TEXT, 2));
+        card.add(copy("Type a word + ENTER.\nDefend the center tower.", Theme.TEXT, 2));
         card.add(Box.createVerticalStrut(12));
-        card.add(copy("NORMAL   One word to defeat.\nARMORED  Two words: break + finish.\nFROST    Drops one Slow charge.\nBLAST    Hits nearby enemies.\nHEALER   Restores broken armor.", Theme.MUTED, 6));
+        card.add(copy("NORMAL   One word.\nARMORED  Break + finish.\nFROST    Gain 1 Slow charge.\nBLAST    Hits nearby foes.\nHEALER   Restores armor.", Theme.MUTED, 6));
         card.add(Box.createVerticalStrut(10));
-        card.add(copy("SPACE: 50% movement speed, 5s.\nStore up to 3 charges. ESC: pause.", Theme.ICE, 3));
+        card.add(copy("SPACE: 50% speed, 5s.\nStore 3 charges. ESC: pause.", Theme.ICE, 3));
         return card;
     }
 
@@ -165,19 +163,12 @@ public final class MenuScreen extends GameScreen {
         return area;
     }
 
-    private record MedalIcon(int rank, Color color) implements Icon {
+    private record CrownIcon(int rank) implements Icon {
         public int getIconWidth() { return 30; }
-        public int getIconHeight() { return 32; }
+        public int getIconHeight() { return 40; }
         public void paintIcon(Component component, Graphics graphics, int x, int y) {
             Graphics2D g = (Graphics2D) graphics.create();
-            g.translate(x, y);
-            g.setColor(Theme.PURPLE);
-            g.fillPolygon(new int[]{6, 14, 11, 2}, new int[]{16, 20, 32, 27}, 4);
-            g.fillPolygon(new int[]{16, 24, 28, 19}, new int[]{20, 16, 27, 32}, 4);
-            g.setColor(color); g.fillOval(3, 0, 24, 24);
-            g.setColor(Theme.SHADOW); g.setStroke(new BasicStroke(1)); g.drawOval(6, 3, 18, 18);
-            g.setFont(Theme.font(14));
-            g.drawString(String.valueOf(rank), 11, 17);
+            PixelArt.crown(g, rank, x, y);
             g.dispose();
         }
     }

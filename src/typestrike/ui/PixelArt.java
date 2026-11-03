@@ -8,8 +8,14 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-/** Bundled 0x72 CC0 art. Resource loading and palette variants are cached once. */
+/** Bundled sprites and backgrounds. Source credits accompany each art folder. */
 final class PixelArt {
+    private static final BufferedImage BARRIER = fittedSprite("/art/custom/rune-dome.png", 144, 144);
+    private static final BufferedImage[] CROWNS = {
+        fittedSprite("/art/custom/crown-gold.png", 30, 25),
+        fittedSprite("/art/custom/crown-silver.png", 30, 25),
+        fittedSprite("/art/custom/crown-bronze.png", 30, 25)
+    };
     private static final BufferedImage[] PLAYER = frames("wizzard_m_idle_anim_f");
     private static final BufferedImage[][] ENEMIES = {
         frames("orc_warrior_run_anim_f"), frames("masked_orc_run_anim_f"),
@@ -32,7 +38,10 @@ final class PixelArt {
     private PixelArt() { }
 
     private static BufferedImage load(String name) {
-        try (var stream = PixelArt.class.getResourceAsStream("/art/0x72/" + name)) {
+        return loadResource("/art/0x72/" + name);
+    }
+    private static BufferedImage loadResource(String name) {
+        try (var stream = PixelArt.class.getResourceAsStream(name)) {
             if (stream == null) throw new IllegalStateException("Missing art: " + name);
             BufferedImage result = ImageIO.read(stream);
             if (result == null) throw new IllegalStateException("Invalid PNG: " + name);
@@ -46,9 +55,12 @@ final class PixelArt {
     }
     private static int frame(double seconds) { return Math.floorMod((int) Math.floor(seconds * 6), 4); }
     private static Rectangle bounds(BufferedImage[] frames) {
+        return bounds(frames, 0);
+    }
+    private static Rectangle bounds(BufferedImage[] frames, int alphaThreshold) {
         Rectangle bounds = null;
         for (BufferedImage image : frames) for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) if ((image.getRGB(x, y) >>> 24) != 0) {
+            for (int x = 0; x < image.getWidth(); x++) if ((image.getRGB(x, y) >>> 24) > alphaThreshold) {
                 if (bounds == null) bounds = new Rectangle(x, y, 1, 1);
                 else bounds.add(new Rectangle(x, y, 1, 1));
             }
@@ -56,12 +68,34 @@ final class PixelArt {
         if (bounds == null) throw new IllegalStateException("Empty sprite animation");
         return bounds;
     }
+    /** Crop transparent margins and cache the final small sprite once, not each frame. */
+    private static BufferedImage fittedSprite(String resource, int maxWidth, int maxHeight) {
+        BufferedImage original = loadResource(resource);
+        Rectangle region = bounds(new BufferedImage[]{original}, 32);
+        double factor = Math.min(maxWidth / (double) region.width, maxHeight / (double) region.height);
+        int width = Math.max(1, (int) Math.round(region.width * factor));
+        int height = Math.max(1, (int) Math.round(region.height * factor));
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = result.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(original, 0, 0, width, height, region.x, region.y,
+                region.x + region.width, region.y + region.height, null);
+        g.dispose();
+        return result;
+    }
     private static void draw(Graphics2D g, BufferedImage image, int x, int y, int scale) {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g.drawImage(image, x, y, image.getWidth() * scale, image.getHeight() * scale, null);
     }
 
     static void wizard(Graphics2D g, int x, int y, int scale) { wizard(g, x, y, scale, 0); }
+    static void crown(Graphics2D g, int rank, int x, int y) {
+        BufferedImage crown = CROWNS[rank - 1];
+        g.drawImage(crown, x + (30 - crown.getWidth()) / 2, y + (40 - crown.getHeight()) / 2, null);
+    }
+    static void barrier(Graphics2D g, int centerX, int centerY) {
+        g.drawImage(BARRIER, centerX - BARRIER.getWidth() / 2, centerY - BARRIER.getHeight() / 2, null);
+    }
     static void wizard(Graphics2D g, int x, int y, int scale, double seconds) {
         BufferedImage image = PLAYER[frame(seconds)];
         int actual = Math.max(1, scale - 1);
@@ -80,7 +114,8 @@ final class PixelArt {
     }
     static void enemy(Graphics2D g, int x, int y, int scale, boolean armor, boolean elite,
                       boolean frost, boolean blast, boolean healer, double seconds) {
-        int kind = healer ? 4 : blast ? 3 : frost ? 2 : elite ? 1 : 0;
+        // An armored orc loses its mask with its armor; healing restores both.
+        int kind = healer ? 4 : blast ? 3 : frost ? 2 : elite && armor ? 1 : 0;
         BufferedImage image = ENEMIES[kind][frame(seconds)];
         Rectangle region = ENEMY_BOUNDS[kind];
         // Size by visible body height, not transparent canvas. Keep original proportions.
@@ -90,27 +125,6 @@ final class PixelArt {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g.drawImage(image, left, top, left + region.width * actual, top + region.height * actual,
                 region.x, region.y, region.x + region.width, region.y + region.height, null);
-        y = top; // Markers attach to the visible body, not transparent padding.
-        int cx = x + 8 * scale;
-        if (frost) {
-            g.setColor(Theme.ICE);
-            g.fillPolygon(new int[]{cx, cx + 2 * scale, cx, cx - 2 * scale},
-                    new int[]{y - 3 * scale, y, y + 3 * scale, y}, 4);
-        }
-        if (blast) {
-            g.setColor(Theme.TEXT); g.fillRect(cx - scale, y - 2 * scale, scale * 2, scale * 3);
-            g.setColor(Theme.GOLD); g.fillRect(cx + scale, y - 3 * scale, scale * 2, scale * 2);
-        }
-        if (healer) {
-            g.setColor(Theme.GREEN);
-            g.fillRect(cx - 2 * scale, y - scale, 4 * scale, scale);
-            g.fillRect(cx - scale, y - 2 * scale, 2 * scale, 3 * scale);
-        }
-        if (armor) {
-            g.setColor(Theme.METAL);
-            g.fillRect(cx - 4 * scale, y + scale, 8 * scale, 3 * scale);
-            g.setColor(Theme.TEXT); g.fillRect(cx - scale, y + scale, 2 * scale, scale);
-        }
     }
 
     static void background(Graphics2D g, int width, int height, boolean menu) {

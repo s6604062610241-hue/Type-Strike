@@ -34,12 +34,14 @@ import typestrike.model.GameModel;
 import typestrike.model.SlowPowerUp;
 import typestrike.model.BlastEnemy;
 import typestrike.model.HealerEnemy;
+import typestrike.audio.SoundEffectPlayer;
 
 public final class PlayScreen extends GameScreen {
     private final JTextField input = new JTextField();
     private final JLabel hud = Theme.label("", 16, Theme.TEXT);
     private final JProgressBar health = new JProgressBar(0, 100);
     private final JButton musicButton = Theme.button("MUTE MUSIC", Theme.ICE);
+    private final JButton soundButton = Theme.button("MUTE SFX", Theme.ICE);
     private final JLabel feedback = Theme.label("Type a word and press ENTER", 13, Theme.MUTED);
     private final JButton pause = Theme.button("PAUSE [ESC]", Theme.PURPLE);
     private final JButton slowButton = Theme.button("SLOW [SPACE] 0/3", Theme.ICE);
@@ -103,7 +105,7 @@ public final class PlayScreen extends GameScreen {
         slowButton.setFont(Theme.font(13));
         slowButton.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
         slowButton.setPreferredSize(new Dimension(230, 30));
-        slowButton.setToolTipText("Defeat a crystal-marked Frost Slime, then press Space. Stores up to three charges.");
+        slowButton.setToolTipText("Defeat the Ice Zombie (Frost), then press Space. Stores up to three charges.");
         slowButton.addActionListener(e -> activateSlow());
         status.add(slowButton, BorderLayout.EAST);
         footer.add(status, BorderLayout.NORTH);
@@ -176,12 +178,26 @@ public final class PlayScreen extends GameScreen {
         menu.addActionListener(e -> window.showMenu());
         pauseMenu.add(menu);
         pauseMenu.add(Box.createVerticalStrut(10));
-        musicButton.setMaximumSize(new Dimension(285, 48));
+        JPanel audioButtons = new JPanel(new java.awt.GridLayout(1, 2, 8, 0));
+        audioButtons.setOpaque(false);
+        audioButtons.setAlignmentX(0.5f);
+        audioButtons.setMaximumSize(new Dimension(285, 48));
+        audioButtons.setPreferredSize(new Dimension(285, 48));
+        for (JButton button : new JButton[]{musicButton, soundButton}) {
+            button.setFont(Theme.font(13));
+            button.setBorder(BorderFactory.createEmptyBorder(12, 8, 12, 8));
+        }
         musicButton.addActionListener(e -> {
             window.getMusic().toggleMuted();
             updateMusicUi();
         });
-        pauseMenu.add(musicButton);
+        soundButton.addActionListener(e -> {
+            window.getSoundEffects().toggleMuted();
+            updateMusicUi();
+        });
+        audioButtons.add(musicButton);
+        audioButtons.add(soundButton);
+        pauseMenu.add(audioButtons);
         pauseMenu.add(Box.createVerticalStrut(10));
         JButton quit = Theme.button("QUIT GAME", Theme.RED);
         quit.setMaximumSize(new Dimension(285, 48));
@@ -226,6 +242,7 @@ public final class PlayScreen extends GameScreen {
             int hp = model.getBase().getHealth();
             model.update(seconds);
             if (hp > model.getBase().getHealth()) {
+                window.getSoundEffects().play(SoundEffectPlayer.Effect.DAMAGE);
                 damageFlash = 0.32;
                 showFeedback("TOWER HIT  -" + (hp - model.getBase().getHealth()) + " HP", Theme.RED);
             }
@@ -247,9 +264,15 @@ public final class PlayScreen extends GameScreen {
         if (model == null || model.isPaused() || model.isGameOver()) return;
         String text = input.getText();
         if (text.isBlank()) return;
+        int previousEffects = model.getCombatEffects().size();
         GameModel.HitResult hit = model.submit(text);
         input.setText("");
         if (hit.matched()) {
+            // One blast sound per submitted word, including an entire chain reaction.
+            boolean blasted = model.getCombatEffects().stream().skip(previousEffects)
+                    .anyMatch(effect -> effect.kind().equals("BLAST"));
+            window.getSoundEffects().play(blasted ? SoundEffectPlayer.Effect.BLAST :
+                    hit.eliminated() ? SoundEffectPlayer.Effect.HIT : SoundEffectPlayer.Effect.ARMOR);
             Color color = hit.frostReward() ? Theme.ICE : hit.eliminated() ? Theme.GREEN : Theme.GOLD;
             String message = hit.chargeAdded() ? "+" + hit.reward() + " / SLOW READY" : hit.eliminated() ? "+" + hit.reward() : "ARMOR BROKEN";
             effects.add(new Effect(hit.x(), hit.y(), message, color));
@@ -273,10 +296,11 @@ public final class PlayScreen extends GameScreen {
     private void activateSlow() {
         if (model == null || model.isPaused() || model.isGameOver()) return;
         if (model.activateSlow()) {
+            window.getSoundEffects().play(SoundEffectPlayer.Effect.SLOW);
             showFeedback("SLOW ACTIVE - enemy movement halved for 5 seconds!", Theme.ICE);
         } else {
             showFeedback(model.isSlowActive() ? "Slow is already active; effects do not stack." :
-                    "No charge. Defeat a crystal-marked Frost Slime.", Theme.MUTED);
+                    "No charge. Defeat the Ice Zombie (Frost).", Theme.MUTED);
         }
         updateHud();
         arena.repaint();
@@ -295,6 +319,7 @@ public final class PlayScreen extends GameScreen {
 
     private void updatePauseUi() {
         window.getMusic().setPaused(model.isPaused());
+        window.getSoundEffects().setPaused(model.isPaused());
         updateMusicUi();
         input.setEnabled(!model.isPaused());
         pause.setText(model.isPaused() ? "RESUME [ESC]" : "PAUSE [ESC]");
@@ -306,6 +331,10 @@ public final class PlayScreen extends GameScreen {
     }
 
     private void updateMusicUi() {
+        soundButton.setText(window.getSoundEffects().isMuted() ? "UNMUTE SFX" : "MUTE SFX");
+        soundButton.setToolTipText(window.getSoundEffects().getWarning().isEmpty() ?
+                "Sound effects can be muted separately from music; choice lasts for this session." :
+                window.getSoundEffects().getWarning());
         musicButton.setText(window.getMusic().isMuted() ? "UNMUTE MUSIC" : "MUTE MUSIC");
         musicButton.setToolTipText(window.getMusic().getWarning().isEmpty() ?
                 "Music preference stays when returning to the menu or starting another run." : window.getMusic().getWarning());
@@ -373,13 +402,8 @@ public final class PlayScreen extends GameScreen {
 
         private void drawField(Graphics2D g) {
             PixelArt.background(g, GameModel.WIDTH, GameModel.HEIGHT, false);
-            g.setColor(Theme.FIELD_BORDER);
-            g.drawRect(14, 14, GameModel.WIDTH - 29, GameModel.HEIGHT - 29);
             if (model.isSlowActive()) {
                 g.setColor(Theme.ICE);
-                g.setStroke(new BasicStroke(3));
-                g.drawRect(16, 16, GameModel.WIDTH - 33, GameModel.HEIGHT - 33);
-                g.setStroke(new BasicStroke(1));
                 centered(g, String.format(Locale.ROOT, "SLOW ACTIVE  %.1fs", model.getSlowRemaining()), 15, 36, Theme.ICE);
             }
         }
@@ -387,23 +411,15 @@ public final class PlayScreen extends GameScreen {
         private void drawBase(Graphics2D g) {
             int cx = (int) GameModel.BASE_X;
             int cy = (int) GameModel.BASE_Y;
-            g.setColor(Theme.BASE_GLOW);
-            g.fillOval(cx - 72, cy - 50, 144, 105);
-            g.setColor(model.isSlowActive() ? Theme.ICE : Theme.BASE_RING);
-            g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{6, 9}, 0));
-            g.drawOval(cx - 72, cy - 64, 144, 128);
-            g.setStroke(new BasicStroke(1));
-            PixelArt.wizard(g, cx - 32, cy - 38, 4, model.getElapsed());
+            PixelArt.barrier(g, cx, cy + 8);
+            // Rest the wizard's visible feet on the dome's lower platform.
+            PixelArt.wizard(g, cx - 32, cy - 14, 4, model.getElapsed());
         }
 
         private void drawEnemies(Graphics2D g) {
             String typed = input.getText().trim().toLowerCase(Locale.ROOT);
             List<java.awt.Rectangle> labels = new ArrayList<>();
-            g.setFont(Theme.font(12));
-            FontMetrics tagMetrics = g.getFontMetrics();
             for (Enemy enemy : model.getEnemies()) {
-                EnemyTag tag = enemyTag(enemy, tagMetrics);
-                if (tag != null) labels.add(new java.awt.Rectangle(tag.x(), tag.y() - 12, tag.width(), 14));
                 labels.add(new java.awt.Rectangle((int) enemy.getX() - 30, (int) enemy.getY() - 38, 60, 82));
             }
             List<Enemy> sorted = model.getEnemies().stream().sorted(Comparator.comparingDouble(
@@ -419,13 +435,6 @@ public final class PlayScreen extends GameScreen {
                 boolean healer = enemy instanceof HealerEnemy;
                 PixelArt.enemy(g, x - 24, y - 18, 3, enemy.hasArmor(), elite, frost, blast, healer,
                         model.getElapsed() + enemy.getId() * 0.13);
-                if (frost || blast || healer) {
-                    g.setColor(healer ? Theme.GREEN : blast ? Theme.PURPLE : Theme.ICE);
-                    g.setFont(Theme.font(10));
-                    EnemyTag tag = enemyTag(enemy, tagMetrics);
-                    g.drawString(tag.text(), tag.x(), tag.y());
-                    g.setFont(Theme.font(20));
-                }
                 if (Math.hypot(x - GameModel.BASE_X, y - GameModel.BASE_Y) < 150) {
                     g.setColor(Theme.RED);
                     g.drawLine(x - 14, y + 40, x + 14, y + 40);
@@ -448,15 +457,8 @@ public final class PlayScreen extends GameScreen {
                     g.setColor(Theme.GREEN);
                     g.drawString(typed, label.x + 9, label.y + 19);
                 }
-                if (enemy.hasArmor()) {
-                    g.setColor(Theme.GOLD);
-                    g.fillRect(x - 8, y + 43, 6, 3);
-                    g.fillRect(x + 2, y + 43, 6, 3);
-                }
             }
         }
-
-        private record EnemyTag(String text, int x, int y, int width) { }
 
         private java.awt.Rectangle placeLabel(java.awt.Rectangle desired, List<java.awt.Rectangle> occupied) {
             java.awt.Rectangle best = desired;
@@ -474,22 +476,6 @@ public final class PlayScreen extends GameScreen {
                 if (!overlaps) { best = candidate; bestDistance = distance; }
             }
             return best;
-        }
-
-        private EnemyTag enemyTag(Enemy enemy, FontMetrics metrics) {
-            String text;
-            if (enemy instanceof HealerEnemy healer) {
-                text = healer.isPreparingHeal() && model.getHealTarget(healer) != null ?
-                        String.format(Locale.ROOT, "HEAL %.1fs", healer.getHealRemaining()) : "HEAL";
-            } else if (enemy.getBlastRadius() > 0) text = "BLAST";
-            else if (enemy.dropsSlowCharge()) text = "SLOW";
-            else return null;
-            int width = metrics.stringWidth(text);
-            boolean bottom = enemy.getY() > GameModel.HEIGHT - 75;
-            int x = (int) enemy.getX() + (bottom ? 36 : -width / 2);
-            if (bottom && x + width > GameModel.WIDTH - 16) x = (int) enemy.getX() - 36 - width;
-            x = Math.max(16, Math.min(GameModel.WIDTH - width - 16, x));
-            return new EnemyTag(text, x, (int) enemy.getY() + (bottom ? 10 : 60), width);
         }
 
         private void drawCombat(Graphics2D g) {

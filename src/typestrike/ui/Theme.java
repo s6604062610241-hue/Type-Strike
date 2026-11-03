@@ -33,7 +33,7 @@ final class Theme {
     static final Font MONO = font(16);
 
     private static Font loadFont() {
-        try (var stream = Theme.class.getResourceAsStream("/fonts/VT323.ttf")) {
+        try (var stream = Theme.class.getResourceAsStream("/fonts/PixelifySans.ttf")) {
             if (stream == null) throw new IllegalStateException("Missing bundled pixel font");
             return Font.createFont(Font.TRUETYPE_FONT, stream);
         } catch (java.io.IOException | java.awt.FontFormatException failure) {
@@ -41,8 +41,8 @@ final class Theme {
         }
     }
 
-    // VT323 has a smaller visible letter height; scale it for readable game text.
-    static Font font(int size) { return PIXEL.deriveFont(Font.PLAIN, Math.max(18, Math.round(size * 1.3f))); }
+    // Match the chosen Pixelify specimen's readable visible letter height.
+    static Font font(int size) { return PIXEL.deriveFont(Font.PLAIN, Math.max(14, Math.round(size * 1.15f))); }
 
     private Theme() { }
 

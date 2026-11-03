@@ -10,7 +10,7 @@ import json
 
 SOURCE_DIRS = ('src', 'resources', 'tests', '.vscode', '.github', 'screenshots')
 SOURCE_FILES = (
-    '.gitignore', 'VERSION', 'README.md', 'Build.cmd', 'Play.cmd',
+    '.gitignore', 'VERSION', 'README.md', 'CHANGELOG.md', 'Build.cmd', 'Play.cmd',
     'build.ps1', 'run.ps1', 'test.ps1', 'tools/package_release.py', 'tools/publication_files.py'
 )
 

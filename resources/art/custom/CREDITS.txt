@@ -1,0 +1,17 @@
+Type Strike custom art selected by the owner
+
+rune-dome.png: J Rune Dome, a hollow violet polygon dome with antique-gold runes.
+crown-gold.png: R2 crown for first place, gold with a red jewel.
+crown-silver.png: R2 crown for second place, silver with a blue jewel.
+crown-bronze.png: R2 crown for third place, bronze with a green jewel.
+
+Created with OpenAI's built-in ImageGen tool from the owner's selected concept
+boards and art direction for Type Strike. These files are AI-generated artwork,
+not downloaded CC0 asset packs. No third-party CC0 license is asserted for them.
+The game screenshot was used as a style reference for the initial concepts;
+the production assets contain no wizard, dungeon tiles, text labels or UI.
+
+Production PNG pixels and transparency are preserved unchanged. At runtime,
+PixelArt omits transparent margins and caches nearest-neighbor scaled images
+at up to 144x144 for the dome and 30x25 for crowns. The wizard is drawn separately.
+The dome is decorative: HP, collision and all gameplay rules remain unchanged.

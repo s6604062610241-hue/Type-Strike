@@ -17,5 +17,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Difficulty balance tests failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Special enemy tests failed.' }
 & (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.MusicPlayerTest
 if ($LASTEXITCODE -ne 0) { throw 'Music tests failed.' }
+& (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.SoundEffectPlayerTest
+if ($LASTEXITCODE -ne 0) { throw 'Sound effect tests failed.' }
 & (Join-Path $jdk 'bin\java.exe') '-Djava.awt.headless=true' -cp "build\classes;$testClasses" typestrike.ui.ArtResourcesTest
 if ($LASTEXITCODE -ne 0) { throw 'Art resource tests failed.' }

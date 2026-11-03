@@ -1,0 +1,21 @@
+Type Strike sound effects preview
+Original sounds by Kenney Vleugels / Kenney (https://kenney.nl/).
+License: Creative Commons Zero (CC0 1.0 Universal).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Owner selections from the local A-D comparison:
+Interface Sounds: https://kenney.nl/assets/interface-sounds
+  hit.wav: Audio/pluck_001.ogg (HIT D)
+  slow.wav: Audio/confirmation_002.ogg (SLOW D)
+
+Impact Sounds 1.0: https://kenney.nl/assets/impact-sounds
+  armor.wav: Audio/impactPlate_light_001.ogg (ARMOR C)
+  damage.wav: Audio/impactPunch_heavy_000.ogg (DAMAGE B)
+  blast.wav: Audio/impactPlate_heavy_000.ogg (BLAST D)
+
+Adaptation: decoded the original OGG files into mono 22050 Hz signed 16-bit
+PCM WAV. Limited peak amplitude to at most 0.6 before scaling by 0.7 for the
+owner's requested 30% quieter sound direction. No composition changes.
+The player also applies -12 dB hardware gain where supported.
+Original pack license notices are included alongside this file.
+Original OGG files and provenance remain in the owner's local staging area.

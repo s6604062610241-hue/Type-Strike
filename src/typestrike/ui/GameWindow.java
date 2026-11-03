@@ -10,12 +10,14 @@ import typestrike.model.GameModel;
 import typestrike.model.WordRepository;
 import typestrike.storage.HighScoreStore;
 import typestrike.audio.MusicPlayer;
+import typestrike.audio.SoundEffectPlayer;
 
 public final class GameWindow extends JFrame {
     private final CardLayout cards = new CardLayout();
     private final JPanel content = new JPanel(cards);
     private final WordRepository words = new WordRepository();
     private final MusicPlayer music;
+    private final SoundEffectPlayer soundEffects;
     private final HighScoreStore records = new HighScoreStore(
             Path.of(System.getProperty("user.home"), ".type-strike", "scores.txt"));
     private MenuScreen menu;
@@ -24,12 +26,17 @@ public final class GameWindow extends JFrame {
     private GameScreen current;
 
     public GameWindow() {
-        this(new MusicPlayer());
+        this(new MusicPlayer(), new SoundEffectPlayer());
     }
 
     public GameWindow(MusicPlayer music) {
+        this(music, new SoundEffectPlayer());
+    }
+
+    public GameWindow(MusicPlayer music, SoundEffectPlayer soundEffects) {
         super("Type Strike | Defend the last spell");
         this.music = music;
+        this.soundEffects = soundEffects;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         buildScreens();
         setContentPane(content);
@@ -37,7 +44,7 @@ public final class GameWindow extends JFrame {
         setSize(1140, 820);
         setLocationRelativeTo(null);
         showScreen("menu", menu);
-        setTitle("Type Strike v1.4.5 | VT323 Font");
+        setTitle("Type Strike v1.5.0 | Rune Dome and Crowns");
         addWindowFocusListener(new java.awt.event.WindowAdapter() {
             @Override public void windowLostFocus(java.awt.event.WindowEvent e) {
                 if (current == play) play.pauseIfRunning();
@@ -57,6 +64,7 @@ public final class GameWindow extends JFrame {
     @Override public void dispose() {
         if (current != null) current.onHide();
         music.close();
+        soundEffects.close();
         super.dispose();
     }
 
@@ -64,6 +72,7 @@ public final class GameWindow extends JFrame {
         if (current != null) current.onHide();
         current = next;
         cards.show(content, name);
+        soundEffects.setPaused(next != play);
         if (next == menu) music.play(MusicPlayer.Track.MENU);
         else if (next == play) music.play(MusicPlayer.Track.BATTLE);
         else music.setPaused(true);
@@ -83,4 +92,5 @@ public final class GameWindow extends JFrame {
     }
     public HighScoreStore getRecords() { return records; }
     public MusicPlayer getMusic() { return music; }
+    public SoundEffectPlayer getSoundEffects() { return soundEffects; }
 }

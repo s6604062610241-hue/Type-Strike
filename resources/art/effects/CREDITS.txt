@@ -1,0 +1,12 @@
+Bubble by AlejandroHaibi
+Source: https://opengameart.org/content/bubble-0
+Original file: https://opengameart.org/sites/default/files/bubble_5.png
+Original upload date: 2024-02-27
+License stated by the author: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+bubble.png: unchanged original 64x64 transparent pixel-art bubble.
+SHA256: 8edd1b4857fd46f03c0221077e88988d15a3628d0a4e1c97f38a925af96eae37
+Type Strike uses it as a decorative barrier around the central wizard.
+Runtime drawing omits transparent canvas padding and scales with nearest-neighbor.
+This visual does not change tower health, collision distance or gameplay rules.
