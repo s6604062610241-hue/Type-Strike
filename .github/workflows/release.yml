@@ -3,7 +3,7 @@ name: Test and release Type Strike
 on:
   push:
     branches: [main]
-    paths: [VERSION]
+    paths: [VERSION, .github/workflows/release.yml]
   workflow_dispatch:
 
 permissions:
@@ -45,7 +45,10 @@ jobs:
             let existing;
             try { existing = await github.rest.repos.getReleaseByTag({...repo, tag}); }
             catch (error) { if (error.status !== 404) throw error; }
-            if (existing) throw new Error(`Release ${tag} already exists; choose a new version`);
+            if (existing) {
+              core.notice(`Release ${tag} already exists; keeping its files and skipping publication.`);
+              return;
+            }
             const files = [
               [`TypeStrike-${tag}.jar`, 'dist/TypeStrike.jar', 'application/java-archive'],
               [`TypeStrike-${tag}-Windows.zip`, `release/TypeStrike-${tag}-Windows.zip`, 'application/zip'],
